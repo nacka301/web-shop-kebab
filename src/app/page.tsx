@@ -3,15 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { menu, shop, sauces, extras, money, type MenuItem } from "@/data/demo";
+import AdminDashboard from "@/components/AdminDashboard";
 
 type PreviewCartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[] };
 
 export default function Home() {
   const [step, setStep] = useState<1 | 2>(1);
   const router = useRouter();
-  const [email, setEmail] = useState("admin@mambokebab.hr");
-  const [password, setPassword] = useState("demo123");
-  const [demoLoggedIn, setDemoLoggedIn] = useState(false);
   const [previewCategory, setPreviewCategory] = useState("Sve");
   const [previewCart, setPreviewCart] = useState<PreviewCartItem[]>([]);
   const [selectedPreviewItem, setSelectedPreviewItem] = useState<MenuItem | null>(null);
@@ -87,11 +85,16 @@ export default function Home() {
             {showPreviewCart && <div className="fixed inset-0 z-30 bg-black/40"><div className="absolute bottom-0 left-1/2 max-h-[90vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[#f7f7f4] p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"><div className="mb-5 flex items-center justify-between"><h2 className="text-2xl font-black">Košarica (pregled)</h2><button onClick={() => setShowPreviewCart(false)} className="text-2xl text-[var(--muted)]">×</button></div><div className="space-y-3">{previewCart.map((item) => <div key={item.id} className="rounded-xl bg-white p-3"><div className="flex items-start justify-between"><div><p className="font-bold">{item.name}</p><p className="text-sm text-[var(--muted)]">{[...item.sauces, ...item.extras].join(", ") || "Bez dodataka"}</p><p className="text-sm text-[var(--muted)]">{money(item.price)} · {item.quantity} kom</p></div><div className="flex items-center gap-2"><button onClick={() => changePreviewQuantity(item.id, -1)} className="h-8 w-8 rounded-full bg-black/5">−</button><span>{item.quantity}</span><button onClick={() => changePreviewQuantity(item.id, 1)} className="h-8 w-8 rounded-full bg-black/5">+</button></div></div></div>)}{previewCart.length === 0 && <p className="rounded-xl bg-white p-4 text-center text-sm text-[var(--muted)]">Košarica je prazna.</p>}</div><div className="my-5 flex justify-between text-lg font-black"><span>Ukupno</span><span>{money(previewTotal)}</span></div><button onClick={() => router.push(`/${shop.slug}`)} className="w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white">Nastavi na pravu narudžbu →</button></div></div>}
           </section>
         ) : (
-          <section className="mx-auto max-w-xl">
-            <div className="mb-6"><p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Demo za vlasnika ili radnika</p><h1 className="text-3xl font-black sm:text-4xl">Prijava u aplikaciju radnje</h1><p className="mt-2 text-[var(--muted)]">Ovdje radnja vidi nove narudžbe i premješta ih kroz pripremu.</p></div>
-            <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8"><label className="block text-sm font-bold">E-mail<input value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-xl border border-black/10 p-3.5 outline-none focus:border-[var(--brand)]" /></label><label className="mt-4 block text-sm font-bold">Lozinka<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-xl border border-black/10 p-3.5 outline-none focus:border-[var(--brand)]" /></label><button onClick={() => setDemoLoggedIn(true)} className="mt-5 w-full rounded-xl bg-[var(--brand)] py-3.5 font-bold text-white">{demoLoggedIn ? "✓ Prijavljeni ste (demo)" : "Prijavi se u dashboard"}</button><div className="mt-5 rounded-xl border border-dashed border-black/10 bg-[#fbf8f5] p-4 text-sm"><p className="font-bold">Demo pristup</p><p className="mt-1 font-mono text-xs text-[var(--muted)]">admin@mambokebab.hr / demo123</p></div></div>
-            <div className="mt-4 text-center"><button onClick={() => router.push(`/${shop.slug}/admin`)} className="text-sm font-bold text-[var(--brand)] underline underline-offset-2">Otvori pravi dashboard →</button></div>
-            <button onClick={() => setStep(1)} className="mt-5 block w-full text-center text-sm font-bold text-[var(--muted)] underline">← Natrag na prikaz za kupca</button>
+          <section className="mx-auto max-w-6xl">
+            <div className="mx-auto mb-6 max-w-3xl text-center">
+              <p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Demo za vlasnika ili radnika</p>
+              <h1 className="text-3xl font-black sm:text-4xl">Dashboard radnje, uživo</h1>
+              <p className="mt-2 text-[var(--muted)]">Potpuno funkcionalan pregled — narudžbe, meni i radno vrijeme, bez prijave.</p>
+            </div>
+            <div className="overflow-hidden rounded-3xl border border-black/5 shadow-xl">
+              <AdminDashboard />
+            </div>
+            <button onClick={() => setStep(1)} className="mx-auto mt-5 block text-center text-sm font-bold text-[var(--muted)] underline">← Natrag na prikaz za kupca</button>
           </section>
         )}
       </div>
