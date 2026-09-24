@@ -32,8 +32,7 @@ export default function Home() {
 
         {step === 1 ? (
           <section>
-            <div className="mx-auto mb-6 max-w-3xl">
-              <p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Kako kupac vidi vašu ponudu</p>
+            <div className="mx-auto mb-6 max-w-3xl text-center">
               <h1 className="text-3xl font-black sm:text-4xl">Kebab naručivanje</h1>
             </div>
             <div className="mx-auto max-w-xl overflow-hidden rounded-3xl border border-black/5 bg-white shadow-xl">
