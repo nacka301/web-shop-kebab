@@ -34,7 +34,7 @@ export default function Home() {
           <section>
             <div className="mx-auto mb-6 max-w-3xl">
               <p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Kako kupac vidi vašu ponudu</p>
-              <h1 className="text-3xl font-black sm:text-4xl">Online naručivanje za {shop.name}</h1>
+              <h1 className="text-3xl font-black sm:text-4xl">Kebab naručivanje</h1>
             </div>
             <div className="mx-auto max-w-xl overflow-hidden rounded-3xl border border-black/5 bg-white shadow-xl">
               <div className="bg-[#171714] px-5 py-6 text-white">
