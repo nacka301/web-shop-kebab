@@ -19,7 +19,6 @@ Admin demo je na [http://localhost:3000/kebab-mambo/admin](http://localhost:3000
 - checkout s imenom, telefonom, napomenom i brzim vremenima preuzimanja
 - potvrda narudžbe s brojem narudžbe
 - admin Kanban za statuse `nova`, `u_pripremi`, `spremna` i `preuzeta`
-- tipka “Otvori smjenu / omogući zvuk” koja poštuje browser autoplay pravila
 - admin toggle dostupnosti artikala
 - početna Supabase shema s multi-tenant RLS politikama u [`supabase/schema.sql`](./supabase/schema.sql)
 
