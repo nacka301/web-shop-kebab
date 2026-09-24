@@ -51,7 +51,6 @@ export default function Home() {
                 <div className="mt-4 rounded-2xl border border-dashed border-[var(--brand)]/40 bg-[#fff0e8]/50 p-4"><p className="text-sm font-black">Kupac jednostavno bira dodatke</p><p className="mt-1 text-xs leading-5 text-[var(--brand-dark)]">Blagi · Ljuti · Majoneza · Kečap<br />Salata · Luk · Kupus · Krastavac · Feferoni</p></div>
               </div>
             </div>
-            <div className="mt-6 flex justify-center px-1"><button onClick={() => setStep(2)} className="w-full rounded-xl border border-black/10 bg-white px-5 py-3.5 font-bold sm:w-auto">Zanima vas kako radnja upravlja narudžbama? →</button></div>
           </section>
         ) : (
           <section className="mx-auto max-w-xl">
