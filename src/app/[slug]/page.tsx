@@ -3,12 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { menu, shop, type MenuItem } from "@/data/demo";
+import { menu, shop, sauces, extras, money, type MenuItem } from "@/data/demo";
 
 type CartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[] };
-const sauces = ["Blagi", "Ljuti", "Majoneza", "Kečap"];
-const extras = ["Salata", "Luk", "Kupus", "Krastavac", "Feferoni"];
-const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
 const productTags: Record<string, string[]> = {
   "small-kebab": ["Piletina", "Salata", "Luk", "Umak"],
   "large-kebab": ["Više mesa", "Salata", "Luk", "Umak"],

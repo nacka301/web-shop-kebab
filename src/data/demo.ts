@@ -15,6 +15,10 @@ export const shop = {
   hours: "Danas otvoreno · 10:00 – 23:00",
 };
 
+export const sauces = ["Blagi", "Ljuti", "Majoneza", "Kečap"];
+export const extras = ["Salata", "Luk", "Kupus", "Krastavac", "Feferoni"];
+export const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
+
 export const menu: MenuItem[] = [
   { id: "small-kebab", name: "Mali kebab", description: "Piletina, salata, luk i umak u domaćem somunu", price: 5.5, category: "Kebab", available: true, emoji: "🥙" },
   { id: "large-kebab", name: "Veliki kebab", description: "Veća porcija mesa, salata, luk i umak u somunu", price: 7, category: "Kebab", available: true, emoji: "🌯" },
