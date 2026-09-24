@@ -23,4 +23,3 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 button, input, textarea, select { font: inherit; }
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
