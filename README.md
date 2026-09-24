@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mambo Kebab MVP
 
-## Getting Started
+Mobile-first Next.js prototip za naručivanje hrane s javnim menijem i admin dashboardom.
 
-First, run the development server:
+## Pokretanje
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Otvori [http://localhost:3000/kebab-mambo](http://localhost:3000/kebab-mambo).
+Admin demo je na [http://localhost:3000/kebab-mambo/admin](http://localhost:3000/kebab-mambo/admin).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Trenutno uključeno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- hrvatsko mobile-first sučelje za javnu narudžbu
+- kategorije, dostupnost artikala i košarica u client stateu
+- checkout s imenom, telefonom, napomenom i brzim vremenima preuzimanja
+- potvrda narudžbe s brojem narudžbe
+- admin Kanban za statuse `nova`, `u_pripremi`, `spremna` i `preuzeta`
+- tipka “Otvori smjenu / omogući zvuk” koja poštuje browser autoplay pravila
+- admin toggle dostupnosti artikala
+- početna Supabase shema s multi-tenant RLS politikama u [`supabase/schema.sql`](./supabase/schema.sql)
 
-## Learn More
+Demo podaci su u [`src/data/demo.ts`](./src/data/demo.ts). Sljedeći korak za produkciju je zamjena demo sloja Supabase klijentom, Auth prijavom i Realtime subscriptionom nad `orders` tablicom.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/kebab-mambo`.
