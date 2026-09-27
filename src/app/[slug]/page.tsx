@@ -11,7 +11,7 @@ type Payment = "cash" | "card";
 const sauces = ["Kečap", "Majoneza", "Ljuti", "BBQ"];
 const extras = ["Salata", "Luk", "Rajčica", "Kiseli krastavci", "Slanina", "Feferoni"];
 const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
-const deliveryFee = 2;
+const minDelivery = 15;
 const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
 const signedMoney = (value: number) => (value > 0 ? `+ ${money(value)}` : value < 0 ? `− ${money(Math.abs(value))}` : "uključeno");
 const productTags: Record<string, string[]> = {
@@ -29,7 +29,7 @@ const productTags: Record<string, string[]> = {
 };
 const orderTypeOptions: { key: OrderType; icon: string; label: string; sub: string }[] = [
   { key: "pickup", icon: "🏪", label: "Preuzimanje", sub: "U radnji · besplatno" },
-  { key: "delivery", icon: "🛵", label: "Dostava", sub: `+ ${money(deliveryFee)}` },
+  { key: "delivery", icon: "🛵", label: "Dostava", sub: "Besplatna dostava" },
 ];
 const paymentOptions: { key: Payment; icon: string; label: string }[] = [
   { key: "cash", icon: "💶", label: "Gotovina" },
@@ -56,8 +56,9 @@ export default function ShopPage() {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const isDelivery = orderType === "delivery";
-  const fee = isDelivery ? deliveryFee : 0;
-  const total = subtotal + fee;
+  const total = subtotal;
+  const deliveryRemaining = Math.max(0, minDelivery - subtotal);
+  const deliveryBelowMin = isDelivery && subtotal < minDelivery;
 
   const sizeDelta = (item: MenuItem, label: string | null) => item.sizes?.find((size) => size.label === label)?.delta ?? 0;
   const isFood = selectedItem ? foodCategories.includes(selectedItem.category) : false;
@@ -83,6 +84,7 @@ export default function ShopPage() {
   const changeQuantity = (id: string, amount: number) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + amount > 0 ? [{ ...item, quantity: item.quantity + amount }] : []) : [item]));
   const submitOrder = (event: React.FormEvent) => {
     event.preventDefault();
+    if (deliveryBelowMin) return;
     // Demo: narudžba se ne šalje niti sprema — samo prikazujemo ekran potvrde.
     setOrderNo(`#${Math.floor(1000 + Math.random() * 9000)}`);
     setConfirmed(true);
@@ -97,6 +99,13 @@ export default function ShopPage() {
     setCustomer({ name: "", phone: "", address: "", note: "", pickup: "Što prije" });
   };
   const closeSheet = () => (confirmed ? resetOrder() : setShowCart(false));
+
+  const orderTypeSelector = <div className="grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
+    <span className="text-xl">{option.icon}</span>
+    <span className="mt-1 block text-sm font-black">{option.label}</span>
+    <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
+  </button>)}</div>;
+  const deliveryNote = isDelivery ? <div className={`mt-2 rounded-xl p-3 text-sm font-bold ${deliveryBelowMin ? "bg-red-50 text-red-700" : "bg-[#eef7ed] text-green-700"}`}>{deliveryBelowMin ? `Dodaj još ${money(deliveryRemaining)} do minimalnog iznosa za dostavu (${money(minDelivery)}).` : `Minimalni iznos za dostavu (${money(minDelivery)}) je ispunjen ✓`}</div> : null;
 
   return <main className="min-h-screen bg-[#f7f7f4] pb-28">
     <header className="bg-[#171714] px-4 py-5 text-white sm:px-8 lg:px-12">
@@ -190,7 +199,7 @@ export default function ShopPage() {
             <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Na ime</span><strong className="text-right">{customer.name}</strong></div>
             <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Plaćanje</span><strong className="text-right">{paymentLabel} · {handoverLabel}</strong></div>
             <div className="mt-2 space-y-0.5 border-t border-black/5 pt-2">{cart.map((item) => <div key={item.id} className="flex justify-between gap-3"><span>{item.quantity}× {item.name}{item.size ? ` (${item.size})` : ""}</span><span className="whitespace-nowrap">{money(item.unitPrice * item.quantity)}</span></div>)}</div>
-            {isDelivery && <div className="flex justify-between border-t border-black/5 pt-2 text-[var(--muted)]"><span>Dostava</span><span>{money(fee)}</span></div>}
+            {isDelivery && <div className="flex justify-between border-t border-black/5 pt-2 text-[var(--muted)]"><span>Dostava</span><span>Besplatno</span></div>}
             <div className="flex justify-between border-t border-black/5 pt-2 text-base font-black"><span>Ukupno</span><span>{money(total)}</span></div>
           </div>
           <button onClick={resetOrder} className="mt-5 w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Nova narudžba</button>
@@ -200,11 +209,7 @@ export default function ShopPage() {
             <button onClick={() => setShowCart(false)} className="text-2xl text-[var(--muted)]" aria-label="Zatvori">×</button>
           </div>
           {!checkout ? <>
-            <div className="mb-4 grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button key={option.key} onClick={() => setOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
-              <span className="text-xl">{option.icon}</span>
-              <span className="mt-1 block text-sm font-black">{option.label}</span>
-              <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
-            </button>)}</div>
+            <div className="mb-4">{orderTypeSelector}{deliveryNote}</div>
             <div className="space-y-3">{cart.map((item) => <div key={item.id} className="rounded-xl bg-white p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -220,17 +225,12 @@ export default function ShopPage() {
               </div>
             </div>)}</div>
             <div className="mt-5 space-y-1 text-sm">
-              <div className="flex justify-between text-[var(--muted)]"><span>Međuzbroj</span><span>{money(subtotal)}</span></div>
-              {isDelivery && <div className="flex justify-between text-[var(--muted)]"><span>Dostava</span><span>{money(fee)}</span></div>}
+              {isDelivery && <div className="flex justify-between text-[var(--muted)]"><span>Dostava</span><span>Besplatno</span></div>}
               <div className="flex justify-between pt-1 text-lg font-black text-black"><span>Ukupno</span><span>{money(total)}</span></div>
             </div>
-            <button onClick={() => setCheckout(true)} className="mt-4 w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Nastavi na podatke</button>
+            <button onClick={() => setCheckout(true)} disabled={deliveryBelowMin} className={`mt-4 w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : "Nastavi na podatke"}</button>
           </> : <form onSubmit={submitOrder} className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
-              <span className="text-xl">{option.icon}</span>
-              <span className="mt-1 block text-sm font-black">{option.label}</span>
-              <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
-            </button>)}</div>
+            <div>{orderTypeSelector}{deliveryNote}</div>
             <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">Za potvrdu narudžbe obavezni su ime i prezime te broj mobitela{isDelivery ? " i adresa dostave" : ""}.</div>
             {isDelivery && <label className="block text-sm font-bold">Adresa dostave<input required value={customer.address} onChange={(event) => setCustomer({ ...customer, address: event.target.value })} placeholder="Ulica i kućni broj, kat/stan" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>}
             <label className="block text-sm font-bold">Ime i prezime<input required pattern="^\s*\S+\s+\S+.*$" title="Upiši ime i prezime." value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Npr. Ivan Horvat" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
@@ -248,8 +248,8 @@ export default function ShopPage() {
               </button>)}</div>
             </div>
             <label className="block text-sm font-bold">Napomena <span className="font-normal text-[var(--muted)]">(opcionalno)</span><textarea value={customer.note} onChange={(event) => setCustomer({ ...customer, note: event.target.value })} placeholder="Npr. bez luka" className="mt-1 h-20 w-full resize-none rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
-            <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">{paymentLabel} <strong>{handoverLabel}</strong>{isDelivery ? ` · dostava ${money(fee)}` : ""}</div>
-            <button className="w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Potvrdi narudžbu · {money(total)}</button>
+            <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">{paymentLabel} <strong>{handoverLabel}</strong>{isDelivery ? " · besplatna dostava" : ""}</div>
+            <button disabled={deliveryBelowMin} className={`w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : `Potvrdi narudžbu · ${money(total)}`}</button>
             <button type="button" onClick={() => setCheckout(false)} className="w-full py-2 text-center text-sm font-bold text-[var(--muted)] underline">← Natrag na košaricu</button>
           </form>}
         </>}
