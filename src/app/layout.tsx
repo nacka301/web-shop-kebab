@@ -6,8 +6,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mambo Kebab",
-  description: "Naruči svježi kebab bez čekanja.",
+  title: "Grill Box",
+  description: "Naruči omiljeni fast food bez čekanja.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

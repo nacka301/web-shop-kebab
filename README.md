@@ -1,4 +1,4 @@
-# Mambo Kebab MVP
+# Grill Box MVP
 
 Mobile-first Next.js prototip za naručivanje hrane s javnim menijem i admin dashboardom.
 
@@ -9,12 +9,12 @@ npm install
 npm run dev
 ```
 
-Otvori [http://localhost:3000/kebab-mambo](http://localhost:3000/kebab-mambo).
-Admin demo je na [http://localhost:3000/kebab-mambo/admin](http://localhost:3000/kebab-mambo/admin).
+Otvori [http://localhost:3000/grill-box](http://localhost:3000/grill-box).
+Admin demo je na [http://localhost:3000/grill-box/admin](http://localhost:3000/grill-box/admin).
 
 ## Trenutno uključeno
 
-- hrvatsko mobile-first sučelje za javnu narudžbu
+- hrvatsko mobile-first sučelje za javnu narudžbu (fast food demo)
 - kategorije, dostupnost artikala i košarica u client stateu
 - checkout s imenom, telefonom, napomenom i brzim vremenima preuzimanja
 - potvrda narudžbe s brojem narudžbe
@@ -24,7 +24,7 @@ Admin demo je na [http://localhost:3000/kebab-mambo/admin](http://localhost:3000
 
 Demo podaci su u [`src/data/demo.ts`](./src/data/demo.ts). Sljedeći korak za produkciju je zamjena demo sloja Supabase klijentom, Auth prijavom i Realtime subscriptionom nad `orders` tablicom.
 
-Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/kebab-mambo`.
+Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/grill-box`.
 
 ## Vercel
 
@@ -34,7 +34,7 @@ Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUB
 4. U **Environment Variables** dodaj:
 
 ```env
-NEXT_PUBLIC_SHOP_URL=https://tvoj-projekt.vercel.app/kebab-mambo
+NEXT_PUBLIC_SHOP_URL=https://tvoj-projekt.vercel.app/grill-box
 ```
 
 5. Klikni **Deploy**.

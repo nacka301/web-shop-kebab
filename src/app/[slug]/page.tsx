@@ -5,19 +5,23 @@ import { useState } from "react";
 import { menu, shop, type MenuItem } from "@/data/demo";
 
 type CartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[]; size: string | null; unitPrice: number };
-const sauces = ["Blagi", "Ljuti", "Majoneza", "Kečap"];
-const extras = ["Salata", "Luk", "Kupus", "Krastavac", "Feferoni"];
-const foodCategories = ["Kebab", "Ostalo"];
+const sauces = ["Kečap", "Majoneza", "Ljuti", "BBQ"];
+const extras = ["Salata", "Luk", "Rajčica", "Kiseli krastavci", "Slanina", "Feferoni"];
+const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
 const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
 const signedMoney = (value: number) => (value > 0 ? `+ ${money(value)}` : value < 0 ? `− ${money(Math.abs(value))}` : "uključeno");
 const productTags: Record<string, string[]> = {
-  "small-kebab": ["Piletina", "Salata", "Luk", "Umak"],
-  "large-kebab": ["Više mesa", "Salata", "Luk", "Umak"],
-  "salad-kebab": ["Kebab meso", "Svježa salata", "Umak"],
-  "hot-dog": ["Hrenovka", "Pecivo", "Umak"],
-  box: ["Meso", "Pomfrit", "Salata", "Umak"],
+  cheeseburger: ["Junetina", "Cheddar", "Salata", "Umak"],
+  "double-burger": ["2× pljeskavica", "Cheddar", "Slanina"],
+  "chicken-burger": ["Piletina", "Salata", "Umak"],
+  gablec: ["Pljeskavica", "Pomfrit", "Salata"],
+  cevapi: ["10 komada", "Lepinja", "Ajvar", "Luk"],
   fries: ["Hrskavi pomfrit"],
+  "onion-rings": ["Pohani luk"],
+  tost: ["Šunka", "Sir"],
+  "hot-dog": ["Hrenovka", "Pecivo", "Umak"],
   cola: ["Ohlađeno piće"],
+  voda: ["Negazirana"],
 };
 
 export default function ShopPage() {
