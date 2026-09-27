@@ -25,17 +25,17 @@ export const shop = {
 };
 
 export const menu: MenuItem[] = [
-  { id: "cheeseburger", name: "Cheeseburger", description: "Sočna pljeskavica, cheddar, salata i umak u pecivu", price: 4.5, category: "Burgeri", available: true, emoji: "🍔", image: "https://loremflickr.com/320/320/cheeseburger?lock=11" },
-  { id: "double-burger", name: "Dvostruki burger", description: "Dvije pljeskavice, dupli cheddar i hrskava slanina", price: 6.5, category: "Burgeri", available: true, emoji: "🍔", image: "https://loremflickr.com/320/320/burger,bacon?lock=22" },
-  { id: "chicken-burger", name: "Piletina burger", description: "Hrskava piletina, salata i umak po izboru", price: 5, category: "Burgeri", available: true, emoji: "🍔", image: "https://loremflickr.com/320/320/chicken,burger?lock=33" },
-  { id: "gablec", name: "Gablec dana", description: "Pljeskavica, pomfrit i salata — domaći gablec", price: 6, category: "Gablec", available: true, emoji: "🍽️", image: "https://loremflickr.com/320/320/grilled,meat,plate?lock=44", sizes: [{ label: "Normalni", delta: 0 }, { label: "Veliki", delta: 1.5 }] },
-  { id: "cevapi", name: "Ćevapi u lepinji", description: "10 ćevapa, lepinja, ajvar i luk", price: 5.5, category: "Gablec", available: true, emoji: "🥙", image: "https://loremflickr.com/320/320/kebab,meat?lock=55" },
-  { id: "fries", name: "Pomfrit", description: "Hrskavi zlatni pomfrit", price: 2.5, category: "Prilozi", available: true, emoji: "🍟", image: "https://loremflickr.com/320/320/french,fries?lock=66", sizes: [{ label: "Mala", delta: 0 }, { label: "Velika", delta: 1.5 }] },
-  { id: "onion-rings", name: "Prženi luk", description: "Hrskavi pohani kolutovi luka", price: 3, category: "Prilozi", available: true, emoji: "🧅", image: "https://loremflickr.com/320/320/onion,rings?lock=77" },
-  { id: "tost", name: "Tost", description: "Šunka, sir i maslac u prepečenom kruhu", price: 3, category: "Ostalo", available: true, emoji: "🥪", image: "https://loremflickr.com/320/320/toast,sandwich?lock=88" },
-  { id: "hot-dog", name: "Hot dog", description: "Hrenovka u pecivu s umakom po izboru", price: 3.5, category: "Ostalo", available: true, emoji: "🌭", image: "https://loremflickr.com/320/320/hotdog?lock=99" },
-  { id: "cola", name: "Coca-Cola", description: "Ohlađeno gazirano piće", price: 2, category: "Piće", available: true, emoji: "🥤", image: "https://loremflickr.com/320/320/cola,glass?lock=101", sizes: [{ label: "0,5 l boca", delta: 0 }, { label: "0,33 l limenka", delta: -0.3 }] },
-  { id: "voda", name: "Voda 0,5 l", description: "Negazirana izvorska voda", price: 1.5, category: "Piće", available: true, emoji: "💧", image: "https://loremflickr.com/320/320/water,bottle?lock=111" },
+  { id: "cheeseburger", name: "Cheeseburger", description: "Sočna pljeskavica, cheddar, salata i umak u pecivu", price: 4.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg" },
+  { id: "double-burger", name: "Dvostruki burger", description: "Dvije pljeskavice, dupli cheddar i hrskava slanina", price: 6.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/double-burger.jpg" },
+  { id: "chicken-burger", name: "Piletina burger", description: "Hrskava piletina, salata i umak po izboru", price: 5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/chicken-burger.jpg" },
+  { id: "gablec", name: "Gablec dana", description: "Pljeskavica, pomfrit i salata — domaći gablec", price: 6, category: "Gablec", available: true, emoji: "🍽️", image: "/images/gablec.jpg", sizes: [{ label: "Normalni", delta: 0 }, { label: "Veliki", delta: 1.5 }] },
+  { id: "cevapi", name: "Ćevapi u lepinji", description: "10 ćevapa, lepinja, ajvar i luk", price: 5.5, category: "Gablec", available: true, emoji: "🥙", image: "/images/cevapi.jpg" },
+  { id: "fries", name: "Pomfrit", description: "Hrskavi zlatni pomfrit", price: 2.5, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg", sizes: [{ label: "Mala", delta: 0 }, { label: "Velika", delta: 1.5 }] },
+  { id: "onion-rings", name: "Prženi luk", description: "Hrskavi pohani kolutovi luka", price: 3, category: "Prilozi", available: true, emoji: "🧅", image: "/images/onion-rings.jpg" },
+  { id: "tost", name: "Tost", description: "Šunka, sir i maslac u prepečenom kruhu", price: 3, category: "Ostalo", available: true, emoji: "🥪", image: "/images/tost.jpg" },
+  { id: "hot-dog", name: "Hot dog", description: "Hrenovka u pecivu s umakom po izboru", price: 3.5, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg" },
+  { id: "cola", name: "Coca-Cola", description: "Ohlađeno gazirano piće", price: 2, category: "Piće", available: true, emoji: "🥤", image: "/images/cola.jpg", sizes: [{ label: "0,5 l boca", delta: 0 }, { label: "0,33 l limenka", delta: -0.3 }] },
+  { id: "voda", name: "Voda 0,5 l", description: "Negazirana izvorska voda", price: 1.5, category: "Piće", available: true, emoji: "💧", image: "/images/voda.jpg" },
 ];
 
 export type OrderStatus = "nova" | "u_pripremi" | "spremna" | "preuzeta";

@@ -1,6 +1,6 @@
 # Grill Box MVP
 
-Mobile-first Next.js prototip za naručivanje hrane s javnim menijem i admin dashboardom.
+Mobile-first Next.js prototip za naručivanje hrane (customer-facing demo).
 
 ## Pokretanje
 
@@ -9,20 +9,29 @@ npm install
 npm run dev
 ```
 
-Otvori [http://localhost:3000/grill-box](http://localhost:3000/grill-box).
-Admin demo je na [http://localhost:3000/grill-box/admin](http://localhost:3000/grill-box/admin).
+Otvori [http://localhost:3000/grill-box](http://localhost:3000/grill-box) (početna `/` automatski vodi na meni).
+
+## Slike jela — kako dodati svoje
+
+Slike stoje u mapi [`public/images/`](./public/images), a ime datoteke odgovara artiklu, npr. `cheeseburger.jpg`, `fries.jpg`, `hot-dog.jpg`.
+
+Trenutno su ondje **placeholderi** ("Zamijeni svojom slikom"). Da ubaciš pravu fotografiju:
+
+1. Otvori mapu `public/images/`.
+2. Zamijeni datoteku svojom fotografijom **pod istim imenom** (npr. spremi svoju sliku kao `cheeseburger.jpg`).
+3. Najbolje kvadratna slika (npr. 400×400), format `.jpg`.
+
+To je sve — meni odmah pokazuje tvoju sliku. Ako slika nedostaje, prikazuje se emoji kao rezerva.
 
 ## Trenutno uključeno
 
 - hrvatsko mobile-first sučelje za javnu narudžbu (fast food demo)
 - kategorije, dostupnost artikala i košarica u client stateu
-- checkout s imenom, telefonom, napomenom i brzim vremenima preuzimanja
+- izbor preuzimanja ili dostave (uz minimalni iznos za dostavu)
+- checkout s imenom, telefonom, adresom, načinom plaćanja i vremenom (odmah ili zakazano)
 - potvrda narudžbe s brojem narudžbe
-- admin Kanban za statuse `nova`, `u_pripremi`, `spremna` i `preuzeta`
-- admin toggle dostupnosti artikala
-- početna Supabase shema s multi-tenant RLS politikama u [`supabase/schema.sql`](./supabase/schema.sql)
 
-Demo podaci su u [`src/data/demo.ts`](./src/data/demo.ts). Sljedeći korak za produkciju je zamjena demo sloja Supabase klijentom, Auth prijavom i Realtime subscriptionom nad `orders` tablicom.
+Ovo je samo customer-facing demo — narudžbe se ne spremaju. Demo podaci (radnja, meni) su u [`src/data/demo.ts`](./src/data/demo.ts).
 
 Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/grill-box`.
 
