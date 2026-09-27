@@ -34,8 +34,6 @@ const paymentOptions: { key: Payment; icon: string; label: string }[] = [
   { key: "cash", icon: "💶", label: "Gotovina" },
   { key: "card", icon: "💳", label: "Karticom online" },
 ];
-const pickupTimes = ["Za 15 min", "Za 30 min", "Za 45 min", "Za 60 min"];
-const deliveryTimes = ["Za 30 – 45 min", "Za 45 – 60 min", "Za 60 – 75 min"];
 
 export default function ShopPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -50,7 +48,9 @@ export default function ShopPage() {
   const [category, setCategory] = useState("Sve");
   const [orderType, setOrderType] = useState<OrderType>("pickup");
   const [payment, setPayment] = useState<Payment>("cash");
-  const [customer, setCustomer] = useState({ name: "", phone: "", address: "", note: "", pickup: pickupTimes[0] });
+  const [timeMode, setTimeMode] = useState<"asap" | "scheduled">("asap");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [customer, setCustomer] = useState({ name: "", phone: "", address: "", note: "" });
 
   const categories = ["Sve", ...Array.from(new Set(menu.map((item) => item.category)))];
   const visible = menu.filter((item) => item.available && (category === "Sve" || item.category === category));
@@ -67,7 +67,8 @@ export default function ShopPage() {
   const handoverLabel = isDelivery ? "pri dostavi" : "pri preuzimanju";
   const paymentSummary = payment === "card" ? "Karticom online" : `Gotovina ${handoverLabel}`;
   const timeLabel = isDelivery ? "Vrijeme dostave" : "Vrijeme preuzimanja";
-  const timeOptions = isDelivery ? deliveryTimes : pickupTimes;
+  const asapLabel = isDelivery ? "≈ 30 min" : "≈ 15 min";
+  const pickupSummary = timeMode === "scheduled" && scheduledTime ? `Zakazano za ${scheduledTime}` : `Što prije · ${asapLabel}`;
 
   const openCustomization = (item: MenuItem) => {
     setSelectedItem(item);
@@ -91,10 +92,6 @@ export default function ShopPage() {
     setOrderNo(`#${Math.floor(1000 + Math.random() * 9000)}`);
     setConfirmed(true);
   };
-  const chooseOrderType = (key: OrderType) => {
-    setOrderType(key);
-    setCustomer((current) => ({ ...current, pickup: (key === "delivery" ? deliveryTimes : pickupTimes)[0] }));
-  };
   const resetOrder = () => {
     setCart([]);
     setShowCart(false);
@@ -102,11 +99,13 @@ export default function ShopPage() {
     setConfirmed(false);
     setOrderType("pickup");
     setPayment("cash");
-    setCustomer({ name: "", phone: "", address: "", note: "", pickup: pickupTimes[0] });
+    setTimeMode("asap");
+    setScheduledTime("");
+    setCustomer({ name: "", phone: "", address: "", note: "" });
   };
   const closeSheet = () => (confirmed ? resetOrder() : setShowCart(false));
 
-  const orderTypeSelector = <div className="grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button type="button" key={option.key} onClick={() => chooseOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
+  const orderTypeSelector = <div className="grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
     <span className="text-xl">{option.icon}</span>
     <span className="mt-1 block text-sm font-black">{option.label}</span>
     <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
@@ -194,7 +193,7 @@ export default function ShopPage() {
           <div className="mt-5 space-y-2 rounded-2xl bg-white p-4 text-left text-sm shadow-sm">
             <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Način</span><strong className="text-right">{isDelivery ? "Dostava" : "Preuzimanje u radnji"}</strong></div>
             {isDelivery && <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Adresa</span><strong className="text-right">{customer.address}</strong></div>}
-            <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">{isDelivery ? "Dostava" : "Preuzimanje"}</span><strong className="text-right">{customer.pickup}</strong></div>
+            <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">{isDelivery ? "Dostava" : "Preuzimanje"}</span><strong className="text-right">{pickupSummary}</strong></div>
             <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Na ime</span><strong className="text-right">{customer.name}</strong></div>
             <div className="flex justify-between gap-3"><span className="text-[var(--muted)]">Plaćanje</span><strong className="text-right">{paymentSummary}</strong></div>
             <div className="mt-2 space-y-0.5 border-t border-black/5 pt-2">{cart.map((item) => <div key={item.id} className="flex justify-between gap-3"><span>{item.quantity}× {item.name}{item.size ? ` (${item.size})` : ""}</span><span className="whitespace-nowrap">{money(item.unitPrice * item.quantity)}</span></div>)}</div>
@@ -234,9 +233,20 @@ export default function ShopPage() {
             {isDelivery && <label className="block text-sm font-bold">Adresa dostave<input required value={customer.address} onChange={(event) => setCustomer({ ...customer, address: event.target.value })} placeholder="Ulica i kućni broj, kat/stan" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>}
             <label className="block text-sm font-bold">Ime i prezime<input required pattern="^\s*\S+\s+\S+.*$" title="Upiši ime i prezime." value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Npr. Ivan Horvat" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
             <label className="block text-sm font-bold">Broj mobitela<input required type="tel" pattern="^(?:\+385|0)9[\s\d\-]{7,}$" title="Upiši ispravan broj mobitela, npr. 091 123 4567." value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="091 123 4567" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
-            <label className="block text-sm font-bold">{timeLabel}<select value={customer.pickup} onChange={(event) => setCustomer({ ...customer, pickup: event.target.value })} className="mt-1 w-full rounded-xl border-0 bg-white p-3">
-              {timeOptions.map((time) => <option key={time}>{time}</option>)}
-            </select></label>
+            <div>
+              <p className="mb-1 text-sm font-bold">{timeLabel}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setTimeMode("asap")} className={`rounded-2xl border p-3 text-left transition ${timeMode === "asap" ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
+                  <span className="block text-sm font-black">Što prije</span>
+                  <span className="block text-xs text-[var(--muted)]">Standardno · {asapLabel}</span>
+                </button>
+                <button type="button" onClick={() => setTimeMode("scheduled")} className={`rounded-2xl border p-3 text-left transition ${timeMode === "scheduled" ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
+                  <span className="block text-sm font-black">Zakaži za kasnije</span>
+                  <span className="block text-xs text-[var(--muted)]">Odaberi vrijeme</span>
+                </button>
+              </div>
+              {timeMode === "scheduled" && <input required type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} className="mt-2 w-full rounded-xl border-0 bg-white p-3 text-black outline-none ring-[var(--brand)] focus:ring-2" />}
+            </div>
             <div>
               <p className="mb-1 text-sm font-bold">Način plaćanja</p>
               <div className="grid grid-cols-2 gap-2">{paymentOptions.map((option) => <button type="button" key={option.key} onClick={() => setPayment(option.key)} className={`flex items-center gap-2 rounded-2xl border p-3 text-sm font-bold transition ${payment === option.key ? "border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border-black/5 bg-white"}`}>
