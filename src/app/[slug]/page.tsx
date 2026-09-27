@@ -114,21 +114,15 @@ export default function ShopPage() {
 
   return <main className="min-h-screen bg-[#f7f7f4] pb-28">
     <header className="bg-[#171714] px-4 py-3 text-white sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--brand)] text-2xl shadow">{shop.logo}</div>
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-black leading-tight">{shop.name}</h1>
-            <p className="flex flex-wrap items-center gap-x-2 text-[11px] text-white/60">
-              <span className="font-bold text-white"><span className="text-[var(--brand)]">★</span> {shop.rating}</span>
-              <span>· {shop.prepTime}</span>
-              <span className="font-bold text-green-400">· Otvoreno</span>
-            </p>
-          </div>
-        </div>
-        <div className="flex shrink-0 rounded-full border border-white/15 bg-white/5 p-1 text-[11px] font-bold">
-          <span className="rounded-full bg-[var(--brand)] px-2.5 py-1.5 text-white">Kupac</span>
-          <a href={`/${shop.slug}/admin`} className="rounded-full px-2.5 py-1.5 text-white/60 transition hover:text-white">Radnik</a>
+      <div className="mx-auto flex max-w-6xl min-w-0 items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--brand)] text-2xl shadow">{shop.logo}</div>
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-black leading-tight">{shop.name}</h1>
+          <p className="flex flex-wrap items-center gap-x-2 text-[11px] text-white/60">
+            <span className="font-bold text-white"><span className="text-[var(--brand)]">★</span> {shop.rating}</span>
+            <span>· {shop.prepTime}</span>
+            <span className="font-bold text-green-400">· Otvoreno</span>
+          </p>
         </div>
       </div>
     </header>
@@ -139,7 +133,7 @@ export default function ShopPage() {
 
     <section className="mx-auto grid max-w-6xl gap-3 px-5 py-5 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 lg:gap-5 lg:px-12">
       {visible.map((item) => <article key={item.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[#fff0e8] text-4xl sm:h-24 sm:w-24">{item.emoji}</div>
+        <ItemImage item={item} />
         <div className="min-w-0 flex-1">
           <h2 className="font-bold">{item.name}</h2>
           <div className="mt-2 flex flex-wrap gap-1.5">{(productTags[item.id] ?? []).map((tag, index) => <span key={tag} className={`rounded-full px-2 py-1 text-[10px] font-bold ${index % 3 === 0 ? "bg-[#fff0e8] text-[var(--brand-dark)]" : index % 3 === 1 ? "bg-[#eef7ed] text-green-700" : "bg-[#eef2ff] text-blue-700"}`}>{tag}</span>)}</div>
@@ -262,4 +256,15 @@ export default function ShopPage() {
       </div>
     </div>}
   </main>;
+}
+
+function ItemImage({ item }: { item: MenuItem }) {
+  const [failed, setFailed] = useState(false);
+  if (item.image && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={item.image} alt={item.name} loading="lazy" onError={() => setFailed(true)} className="h-20 w-20 shrink-0 rounded-xl bg-[#fff0e8] object-cover sm:h-24 sm:w-24" />
+    );
+  }
+  return <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[#fff0e8] text-4xl sm:h-24 sm:w-24">{item.emoji}</div>;
 }
