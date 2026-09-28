@@ -266,31 +266,34 @@ export default function ShopPage() {
             <button onClick={() => setCheckout(true)} disabled={deliveryBelowMin} className={`mt-4 w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : "Nastavi na podatke"}</button>
           </> : <form onSubmit={submitOrder} className="space-y-3">
             <div>{orderTypeSelector}{deliveryNote}</div>
-            <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">Za potvrdu narudžbe obavezni su ime i prezime te broj mobitela{isDelivery ? " i adresa dostave" : ""}.</div>
-            {isDelivery && <label className="block text-sm font-bold">Adresa dostave<input required value={customer.address} onChange={(event) => setCustomer({ ...customer, address: event.target.value })} placeholder="Ulica i kućni broj, kat/stan" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>}
-            <label className="block text-sm font-bold">Ime i prezime<input required pattern="^\s*\S+\s+\S+.*$" title="Upiši ime i prezime." value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Npr. Ivan Horvat" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
-            <label className="block text-sm font-bold">Broj mobitela<input required type="tel" pattern="^(?:\+385|0)9[\s\d\-]{7,}$" title="Upiši ispravan broj mobitela, npr. 091 123 4567." value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="091 123 4567" className="mt-1 w-full rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
+            <p className="text-sm text-[var(--muted)]">Unesi podatke za pripremu narudžbe. Polja označena <span className="font-bold text-red-500">*</span> su obavezna.</p>
+            {isDelivery && <label className="block text-sm font-bold">Adresa dostave <span className="text-red-500">*</span><input required value={customer.address} onChange={(event) => setCustomer({ ...customer, address: event.target.value })} placeholder="Ulica i kućni broj, kat/stan" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>}
+            <label className="block text-sm font-bold">Ime i prezime <span className="text-red-500">*</span><input required pattern="^\s*\S+\s+\S+.*$" title="Upiši ime i prezime." value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Npr. Ivan Horvat" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
+            <label className="block text-sm font-bold">Broj mobitela <span className="text-red-500">*</span><input required type="tel" pattern="^(?:\+385|0)9[\s\d\-]{7,}$" title="Upiši ispravan broj mobitela, npr. 091 123 4567." value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="091 123 4567" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
             <div>
               <p className="mb-1 text-sm font-bold">{timeLabel}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setTimeMode("asap")} className={`rounded-2xl border p-3 text-left transition ${timeMode === "asap" ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
-                  <span className="block text-sm font-black">Što prije</span>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button type="button" onClick={() => setTimeMode("asap")} className={`relative rounded-2xl p-3 pr-8 text-left transition ${timeMode === "asap" ? "border-2 border-[var(--brand)] bg-[#fff0e8]" : "border border-black/[0.08] bg-black/[0.02]"}`}>
+                  <span className="block text-sm font-bold">Što prije</span>
                   <span className="block text-xs text-[var(--muted)]">Standardno · {asapLabel}</span>
+                  {timeMode === "asap" && <CheckBadge />}
                 </button>
-                <button type="button" onClick={() => setTimeMode("scheduled")} className={`rounded-2xl border p-3 text-left transition ${timeMode === "scheduled" ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
-                  <span className="block text-sm font-black">Zakaži za kasnije</span>
+                <button type="button" onClick={() => setTimeMode("scheduled")} className={`relative rounded-2xl p-3 pr-8 text-left transition ${timeMode === "scheduled" ? "border-2 border-[var(--brand)] bg-[#fff0e8]" : "border border-black/[0.08] bg-black/[0.02]"}`}>
+                  <span className="block text-sm font-bold">Zakaži za kasnije</span>
                   <span className="block text-xs text-[var(--muted)]">Odaberi vrijeme</span>
+                  {timeMode === "scheduled" && <CheckBadge />}
                 </button>
               </div>
-              {timeMode === "scheduled" && <input required type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} className="mt-2 w-full rounded-xl border-0 bg-white p-3 text-black outline-none ring-[var(--brand)] focus:ring-2" />}
+              {timeMode === "scheduled" && <input required type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} className="mt-2 w-full rounded-xl border border-black/10 bg-white p-3 text-black outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" />}
             </div>
             <div>
               <p className="mb-1 text-sm font-bold">Način plaćanja</p>
-              <div className="grid grid-cols-2 gap-2">{paymentOptions.map((option) => <button type="button" key={option.key} onClick={() => setPayment(option.key)} className={`flex items-center gap-2 rounded-2xl border p-3 text-sm font-bold transition ${payment === option.key ? "border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border-black/5 bg-white"}`}>
+              <div className="grid grid-cols-2 gap-2.5">{paymentOptions.map((option) => <button type="button" key={option.key} onClick={() => setPayment(option.key)} className={`relative flex items-center gap-2 rounded-2xl p-3 pr-8 text-sm font-bold transition ${payment === option.key ? "border-2 border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border border-black/[0.08] bg-black/[0.02]"}`}>
                 <span className="text-lg">{option.icon}</span>{option.label}
+                {payment === option.key && <CheckBadge />}
               </button>)}</div>
             </div>
-            <label className="block text-sm font-bold">Napomena <span className="font-normal text-[var(--muted)]">(opcionalno)</span><textarea value={customer.note} onChange={(event) => setCustomer({ ...customer, note: event.target.value })} placeholder="Npr. bez luka" className="mt-1 h-20 w-full resize-none rounded-xl border-0 bg-white p-3 outline-none ring-[var(--brand)] focus:ring-2" /></label>
+            <label className="block text-sm font-bold">Napomena <span className="font-normal text-[var(--muted)]">(opcionalno)</span><textarea value={customer.note} onChange={(event) => setCustomer({ ...customer, note: event.target.value })} rows={4} placeholder="Npr. bez luka, dostava na stražnji ulaz…" className="mt-1 h-28 w-full resize-none rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
             <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">{payment === "card" ? <>Plaćate <strong>online karticom</strong> pri narudžbi.</> : <>Plaćate <strong>gotovinom {handoverLabel}</strong>.</>}{isDelivery ? " Besplatna dostava." : ""}</div>
             <button disabled={deliveryBelowMin} className={`w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : `Potvrdi narudžbu · ${money(total)}`}</button>
             <button type="button" onClick={() => setCheckout(false)} className="w-full rounded-xl border border-black/10 bg-white py-3.5 text-sm font-bold text-[var(--muted)] transition hover:bg-black/[.03] active:scale-[0.98]">← Natrag na košaricu</button>
@@ -299,6 +302,10 @@ export default function ShopPage() {
       </div>
     </div>}
   </main>;
+}
+
+function CheckBadge() {
+  return <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--brand)] text-white"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 8l3.5 3.5L13 5" strokeLinecap="round" strokeLinejoin="round" /></svg></span>;
 }
 
 function StoreIcon() {
