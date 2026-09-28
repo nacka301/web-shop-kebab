@@ -124,16 +124,12 @@ export default function ShopPage() {
             <span className="font-bold text-green-400">· Otvoreno</span>
           </p>
         </div>
+        <div className="ml-auto hidden flex-wrap items-center justify-end gap-2 md:flex">
+          <span className="border-2 border-white/20 px-2 py-1 text-[11px] font-bold text-white/80">📍 {shop.address}</span>
+          <span className="border-2 border-white/20 px-2 py-1 text-[11px] font-bold text-white/80">🕒 {shop.hours}</span>
+        </div>
       </div>
     </header>
-
-    <section className="border-b-4 border-black bg-[var(--brand)] px-5 py-2.5 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1.5">
-        <h2 className="text-sm font-black uppercase leading-none text-black">{shop.tagline}</h2>
-        <span className="border-2 border-black bg-white px-2 py-0.5 text-[11px] font-black uppercase">📍 {shop.address}</span>
-        <span className="border-2 border-black bg-white px-2 py-0.5 text-[11px] font-black uppercase">🕒 {shop.hours}</span>
-      </div>
-    </section>
 
     <section className="sticky top-0 z-10 overflow-x-auto border-b-4 border-black bg-[#f7f7f4] px-5 py-4 sm:px-8 lg:px-12">
       <div className="mx-auto flex max-w-6xl gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap border-2 border-black px-4 py-2 text-sm font-black uppercase transition ${category === item ? "bg-black text-white brutal-shadow-sm" : "bg-white text-black"}`}>{item}</button>)}</div>
