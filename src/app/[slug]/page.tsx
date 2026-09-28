@@ -7,15 +7,6 @@ type CartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[
 type OrderType = "pickup" | "delivery";
 type Payment = "cash" | "card";
 
-const sauces = ["Kečap", "Majoneza", "Ljuti", "BBQ"];
-const extras: { name: string; price: number }[] = [
-  { name: "Salata", price: 0 },
-  { name: "Luk", price: 0 },
-  { name: "Rajčica", price: 0 },
-  { name: "Kiseli krastavci", price: 0 },
-  { name: "Slanina", price: 1 },
-  { name: "Feferoni", price: 0.5 },
-];
 const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
 const minDelivery = 15;
 const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
@@ -70,8 +61,7 @@ export default function ShopPage() {
   const deliveryBelowMin = isDelivery && subtotal < minDelivery;
 
   const sizeDelta = (item: MenuItem, label: string | null) => item.sizes?.find((size) => size.label === label)?.delta ?? 0;
-  const isFood = selectedItem ? foodCategories.includes(selectedItem.category) : false;
-  const extraCost = selectedExtras.reduce((sum, name) => sum + (extras.find((e) => e.name === name)?.price ?? 0), 0);
+  const extraCost = selectedItem ? selectedExtras.reduce((sum, name) => sum + (selectedItem.extraOptions?.find((e) => e.name === name)?.price ?? 0), 0) : 0;
   const unitConfigured = selectedItem ? selectedItem.price + sizeDelta(selectedItem, selectedSize) + extraCost : 0;
   const handoverLabel = isDelivery ? "pri dostavi" : "pri preuzimanju";
   const paymentSummary = payment === "card" ? "Karticom online" : `Gotovina ${handoverLabel}`;
@@ -81,7 +71,7 @@ export default function ShopPage() {
 
   const openCustomization = (item: MenuItem) => {
     setSelectedItem(item);
-    setSelectedSauce(foodCategories.includes(item.category) ? sauces[0] : null);
+    setSelectedSauce(null);
     setSelectedExtras([]);
     setSelectedSize(item.sizes?.[0]?.label ?? null);
     setConfigQty(1);
@@ -193,25 +183,24 @@ export default function ShopPage() {
               </button>)}</div>
             </section>}
 
-            {isFood && <>
-              <section className="mt-5">
-                <h3 className="font-display text-base font-bold">Odaberi umak <span className="ml-1 text-xs font-normal text-[var(--muted)]">(obavezno, odaberi 1)</span></h3>
-                <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{sauces.map((sauce, index) => <button key={sauce} onClick={() => setSelectedSauce(sauce)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
-                  <span className="text-sm font-semibold">{sauce}</span>
-                  <Radio active={selectedSauce === sauce} />
-                </button>)}</div>
-              </section>
-              <section className="mt-5">
-                <h3 className="font-display text-base font-bold">Prilozi <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi više)</span></h3>
-                <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{extras.map((extra, index) => {
-                  const on = selectedExtras.includes(extra.name);
-                  return <button key={extra.name} onClick={() => toggleChoice(extra.name, selectedExtras, setSelectedExtras)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
-                    <span className="text-sm font-semibold">{extra.name}</span>
-                    <span className="flex items-center gap-3">{extra.price > 0 && <span className="text-xs font-semibold text-[var(--brand-dark)]">+ {money(extra.price)}</span>}<Checkbox active={on} /></span>
-                  </button>;
-                })}</div>
-              </section>
-            </>}
+            {selectedItem.sauceOptions && selectedItem.sauceOptions.length > 0 && <section className="mt-5">
+              <h3 className="font-display text-base font-bold">Odaberi umak <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi 1, po želji)</span></h3>
+              <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{selectedItem.sauceOptions.map((sauce, index) => <button key={sauce} onClick={() => setSelectedSauce(selectedSauce === sauce ? null : sauce)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                <span className="text-sm font-semibold">{sauce}</span>
+                <Radio active={selectedSauce === sauce} />
+              </button>)}</div>
+            </section>}
+
+            {selectedItem.extraOptions && selectedItem.extraOptions.length > 0 && <section className="mt-5">
+              <h3 className="font-display text-base font-bold">Prilozi <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi više)</span></h3>
+              <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{selectedItem.extraOptions.map((extra, index) => {
+                const on = selectedExtras.includes(extra.name);
+                return <button key={extra.name} onClick={() => toggleChoice(extra.name, selectedExtras, setSelectedExtras)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                  <span className="text-sm font-semibold">{extra.name}</span>
+                  <span className="flex items-center gap-3">{extra.price > 0 && <span className="text-xs font-semibold text-[var(--brand-dark)]">+ {money(extra.price)}</span>}<Checkbox active={on} /></span>
+                </button>;
+              })}</div>
+            </section>}
           </div>
         </div>
 
