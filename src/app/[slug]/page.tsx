@@ -105,11 +105,16 @@ export default function ShopPage() {
   };
   const closeSheet = () => (confirmed ? resetOrder() : setShowCart(false));
 
-  const orderTypeSelector = <div className="grid grid-cols-2 gap-2">{orderTypeOptions.map((option) => <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`rounded-2xl border p-3 text-left transition ${orderType === option.key ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/5 bg-white"}`}>
-    <span className="text-xl">{option.icon}</span>
-    <span className="mt-1 block text-sm font-black">{option.label}</span>
-    <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
-  </button>)}</div>;
+  const orderTypeSelector = <div className="grid grid-cols-2 gap-2.5">{orderTypeOptions.map((option) => {
+    const active = orderType === option.key;
+    return <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${active ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/[0.08] bg-black/[0.02] hover:bg-black/[0.04]"}`}>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${active ? "bg-[var(--brand)] text-white" : "bg-white text-[var(--foreground)] shadow-sm"}`}>{option.key === "pickup" ? <StoreIcon /> : <ScooterIcon />}</span>
+      <span className="min-w-0">
+        <span className="block text-sm font-bold leading-tight">{option.label}</span>
+        <span className="block text-xs text-[var(--muted)]">{option.sub}</span>
+      </span>
+    </button>;
+  })}</div>;
   const deliveryNote = isDelivery ? <div className={`mt-2 rounded-xl p-3 text-sm font-bold ${deliveryBelowMin ? "bg-red-50 text-red-700" : "bg-[#eef7ed] text-green-700"}`}>{deliveryBelowMin ? `Dodaj još ${money(deliveryRemaining)} do minimalnog iznosa za dostavu (${money(minDelivery)}).` : `Minimalni iznos za dostavu (${money(minDelivery)}) je ispunjen ✓`}</div> : null;
 
   return <main className="min-h-screen bg-[var(--background)] pb-28">
@@ -239,23 +244,24 @@ export default function ShopPage() {
           </div>
           {!checkout ? <>
             <div className="mb-4">{orderTypeSelector}{deliveryNote}</div>
-            <div className="space-y-3">{cart.map((item) => <div key={item.id} className="rounded-xl bg-white p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-bold">{item.name}{item.size ? <span className="text-[var(--muted)]"> · {item.size}</span> : ""}</p>
-                  <p className="text-sm text-[var(--muted)]">{[...item.sauces, ...item.extras].join(", ") || (foodCategories.includes(item.category) ? "Bez dodataka" : "")}</p>
-                  <p className="text-sm text-[var(--muted)]">{money(item.unitPrice)} · {item.quantity} kom</p>
+            <div className="overflow-hidden rounded-2xl bg-white card-shadow">{cart.map((item, index) => {
+              const details = [...item.sauces, ...item.extras].join(", ") || (foodCategories.includes(item.category) ? "Bez dodataka" : "");
+              return <div key={item.id} className={`flex items-center gap-3 p-3.5 ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold leading-tight">{item.name}{item.size ? <span className="font-normal text-[var(--muted)]"> · {item.size}</span> : ""}</p>
+                  {details && <p className="mt-0.5 text-xs leading-snug text-[var(--muted)]">{details}</p>}
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button onClick={() => changeQuantity(item.id, -1)} className="h-8 w-8 rounded-full bg-black/5" aria-label="Smanji količinu">−</button>
-                  <span>{item.quantity}</span>
-                  <button onClick={() => changeQuantity(item.id, 1)} className="h-8 w-8 rounded-full bg-black/5" aria-label="Povećaj količinu">+</button>
+                <span className="shrink-0 font-bold tabular-nums">{money(item.unitPrice * item.quantity)}</span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button onClick={() => changeQuantity(item.id, -1)} className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.06] text-lg leading-none transition active:scale-90" aria-label="Smanji količinu">−</button>
+                  <span className="w-5 text-center font-semibold tabular-nums">{item.quantity}</span>
+                  <button onClick={() => changeQuantity(item.id, 1)} className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.06] text-lg leading-none transition active:scale-90" aria-label="Povećaj količinu">+</button>
                 </div>
-              </div>
-            </div>)}</div>
-            <div className="mt-5 space-y-1 text-sm">
-              {isDelivery && <div className="flex justify-between text-[var(--muted)]"><span>Dostava</span><span>Besplatno</span></div>}
-              <div className="flex justify-between pt-1 text-lg font-black text-black"><span>Ukupno</span><span>{money(total)}</span></div>
+              </div>;
+            })}</div>
+            <div className="mt-5 border-t border-black/10 pt-4">
+              {isDelivery && <div className="mb-1.5 flex justify-between text-sm text-[var(--muted)]"><span>Dostava</span><span className="font-semibold text-green-700">Besplatno</span></div>}
+              <div className="flex items-baseline justify-between"><span className="text-lg font-bold">Ukupno</span><span className="text-2xl font-extrabold">{money(total)}</span></div>
             </div>
             <button onClick={() => setCheckout(true)} disabled={deliveryBelowMin} className={`mt-4 w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : "Nastavi na podatke"}</button>
           </> : <form onSubmit={submitOrder} className="space-y-3">
@@ -293,6 +299,25 @@ export default function ShopPage() {
       </div>
     </div>}
   </main>;
+}
+
+function StoreIcon() {
+  return <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M4 4h16l1.5 5H2.5L4 4Z" />
+    <path d="M4.5 9v11h15V9" />
+    <path d="M9.5 20v-6h5v6" />
+  </svg>;
+}
+
+function ScooterIcon() {
+  return <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="6" cy="18" r="2.5" />
+    <circle cx="18" cy="18" r="2.5" />
+    <path d="M8.5 18h6.5" />
+    <path d="M15 18l-2.5-8H10.5" />
+    <path d="M13.5 10.5H17l2.5 5" />
+    <path d="M5.5 12h3l1.2 3" />
+  </svg>;
 }
 
 function Radio({ active }: { active: boolean }) {
