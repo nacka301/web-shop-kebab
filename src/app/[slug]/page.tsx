@@ -8,7 +8,14 @@ type OrderType = "pickup" | "delivery";
 type Payment = "cash" | "card";
 
 const sauces = ["Kečap", "Majoneza", "Ljuti", "BBQ"];
-const extras = ["Salata", "Luk", "Rajčica", "Kiseli krastavci", "Slanina", "Feferoni"];
+const extras: { name: string; price: number }[] = [
+  { name: "Salata", price: 0 },
+  { name: "Luk", price: 0 },
+  { name: "Rajčica", price: 0 },
+  { name: "Kiseli krastavci", price: 0 },
+  { name: "Slanina", price: 1 },
+  { name: "Feferoni", price: 0.5 },
+];
 const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
 const minDelivery = 15;
 const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
@@ -38,9 +45,10 @@ const paymentOptions: { key: Payment; icon: string; label: string }[] = [
 export default function ShopPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
+  const [selectedSauce, setSelectedSauce] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [configQty, setConfigQty] = useState(1);
   const [showCart, setShowCart] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -63,7 +71,8 @@ export default function ShopPage() {
 
   const sizeDelta = (item: MenuItem, label: string | null) => item.sizes?.find((size) => size.label === label)?.delta ?? 0;
   const isFood = selectedItem ? foodCategories.includes(selectedItem.category) : false;
-  const configuredPrice = selectedItem ? selectedItem.price + sizeDelta(selectedItem, selectedSize) : 0;
+  const extraCost = selectedExtras.reduce((sum, name) => sum + (extras.find((e) => e.name === name)?.price ?? 0), 0);
+  const unitConfigured = selectedItem ? selectedItem.price + sizeDelta(selectedItem, selectedSize) + extraCost : 0;
   const handoverLabel = isDelivery ? "pri dostavi" : "pri preuzimanju";
   const paymentSummary = payment === "card" ? "Karticom online" : `Gotovina ${handoverLabel}`;
   const timeLabel = isDelivery ? "Vrijeme dostave" : "Vrijeme preuzimanja";
@@ -72,16 +81,17 @@ export default function ShopPage() {
 
   const openCustomization = (item: MenuItem) => {
     setSelectedItem(item);
-    setSelectedSauces([]);
+    setSelectedSauce(foodCategories.includes(item.category) ? sauces[0] : null);
     setSelectedExtras([]);
     setSelectedSize(item.sizes?.[0]?.label ?? null);
+    setConfigQty(1);
   };
   const toggleChoice = (choice: string, selected: string[], setSelected: (value: string[]) => void) => {
     setSelected(selected.includes(choice) ? selected.filter((item) => item !== choice) : [...selected, choice]);
   };
   const addConfigured = () => {
     if (!selectedItem) return;
-    setCart((current) => [...current, { ...selectedItem, id: `${selectedItem.id}-${Date.now()}`, quantity: 1, sauces: selectedSauces, extras: selectedExtras, size: selectedSize, unitPrice: configuredPrice }]);
+    setCart((current) => [...current, { ...selectedItem, id: `${selectedItem.id}-${Date.now()}`, quantity: configQty, sauces: selectedSauce ? [selectedSauce] : [], extras: selectedExtras, size: selectedSize, unitPrice: unitConfigured }]);
     setSelectedItem(null);
   };
   const changeQuantity = (id: string, amount: number) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + amount > 0 ? [{ ...item, quantity: item.quantity + amount }] : []) : [item]));
@@ -160,30 +170,59 @@ export default function ShopPage() {
     </button>}
 
     {selectedItem && <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSelectedItem(null)}>
-      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5">
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <p className="text-sm font-bold text-[var(--brand)]">Prilagodi narudžbu</p>
-            <h2 className="text-2xl font-black">{selectedItem.name}</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">{selectedItem.description}</p>
+      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 flex max-h-[92vh] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-3xl bg-[var(--background)]">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="relative">
+            {selectedItem.image
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={selectedItem.image} alt={selectedItem.name} className="h-40 w-full object-cover" />
+              : <div className="flex h-40 w-full items-center justify-center bg-[#f3ede6] text-6xl">{selectedItem.emoji}</div>}
+            <button onClick={() => setSelectedItem(null)} aria-label="Zatvori" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-xl text-[var(--foreground)] shadow-md backdrop-blur">×</button>
           </div>
-          <button onClick={() => setSelectedItem(null)} className="text-2xl text-[var(--muted)]">×</button>
+
+          <div className="p-5">
+            <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand)]">Prilagodi narudžbu</p>
+            <h2 className="font-display text-2xl font-extrabold leading-tight">{selectedItem.name}</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">{selectedItem.description}</p>
+
+            {selectedItem.sizes && <section className="mt-5">
+              <h3 className="font-display text-base font-bold">Veličina</h3>
+              <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{selectedItem.sizes.map((size, index) => <button key={size.label} onClick={() => setSelectedSize(size.label)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                <span className="text-sm font-semibold">{size.label}</span>
+                <span className="flex items-center gap-3"><span className="text-xs text-[var(--muted)]">{signedMoney(size.delta)}</span><Radio active={selectedSize === size.label} /></span>
+              </button>)}</div>
+            </section>}
+
+            {isFood && <>
+              <section className="mt-5">
+                <h3 className="font-display text-base font-bold">Odaberi umak <span className="ml-1 text-xs font-normal text-[var(--muted)]">(obavezno, odaberi 1)</span></h3>
+                <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{sauces.map((sauce, index) => <button key={sauce} onClick={() => setSelectedSauce(sauce)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                  <span className="text-sm font-semibold">{sauce}</span>
+                  <Radio active={selectedSauce === sauce} />
+                </button>)}</div>
+              </section>
+              <section className="mt-5">
+                <h3 className="font-display text-base font-bold">Prilozi <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi više)</span></h3>
+                <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{extras.map((extra, index) => {
+                  const on = selectedExtras.includes(extra.name);
+                  return <button key={extra.name} onClick={() => toggleChoice(extra.name, selectedExtras, setSelectedExtras)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                    <span className="text-sm font-semibold">{extra.name}</span>
+                    <span className="flex items-center gap-3">{extra.price > 0 && <span className="text-xs font-semibold text-[var(--brand-dark)]">+ {money(extra.price)}</span>}<Checkbox active={on} /></span>
+                  </button>;
+                })}</div>
+              </section>
+            </>}
+          </div>
         </div>
 
-        {selectedItem.sizes && <>
-          <h3 className="mb-2 font-black">Veličina</h3>
-          <div className="mb-5 grid grid-cols-2 gap-2">{selectedItem.sizes.map((size) => <button key={size.label} onClick={() => setSelectedSize(size.label)} className={`rounded-xl border p-3 text-left text-sm font-bold ${selectedSize === size.label ? "border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border-black/5 bg-white"}`}>{size.label}<span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">{signedMoney(size.delta)}</span></button>)}</div>
-        </>}
-
-        {isFood && <>
-          <h3 className="mb-2 font-black">Odaberi umak</h3>
-          <div className="mb-5 grid grid-cols-2 gap-2">{sauces.map((sauce) => <button key={sauce} onClick={() => toggleChoice(sauce, selectedSauces, setSelectedSauces)} className={`rounded-xl border p-3 text-left text-sm font-bold ${selectedSauces.includes(sauce) ? "border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border-black/5 bg-white"}`}>{selectedSauces.includes(sauce) ? "✓ " : ""}{sauce}</button>)}</div>
-          <h3 className="mb-2 font-black">Prilozi</h3>
-          <p className="mb-2 text-xs text-[var(--muted)]">Možeš odabrati više priloga.</p>
-          <div className="mb-6 grid grid-cols-2 gap-2">{extras.map((extra) => <button key={extra} onClick={() => toggleChoice(extra, selectedExtras, setSelectedExtras)} className={`rounded-xl border p-3 text-left text-sm font-bold ${selectedExtras.includes(extra) ? "border-[var(--brand)] bg-[#fff0e8] text-[var(--brand-dark)]" : "border-black/5 bg-white"}`}>{selectedExtras.includes(extra) ? "✓ " : ""}{extra}</button>)}</div>
-        </>}
-
-        <button onClick={addConfigured} className="w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Dodaj u košaricu · {money(configuredPrice)}</button>
+        <div className="flex items-center gap-3 border-t border-black/[0.06] bg-white/95 p-4 backdrop-blur safe-bottom">
+          <div className="flex shrink-0 items-center gap-1 rounded-full bg-black/[0.05] p-1">
+            <button onClick={() => setConfigQty((q) => Math.max(1, q - 1))} aria-label="Smanji količinu" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm active:scale-90">−</button>
+            <span className="w-7 text-center font-bold">{configQty}</span>
+            <button onClick={() => setConfigQty((q) => q + 1)} aria-label="Povećaj količinu" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl shadow-sm active:scale-90">+</button>
+          </div>
+          <button onClick={addConfigured} className="flex flex-1 items-center justify-center rounded-full bg-[var(--brand)] py-3.5 font-bold text-white shadow-lg shadow-[var(--brand)]/30 transition hover:bg-[var(--brand-dark)] active:scale-[0.98]">Dodaj u košaricu · {money(unitConfigured * configQty)}</button>
+        </div>
       </div>
     </div>}
 
@@ -265,6 +304,14 @@ export default function ShopPage() {
       </div>
     </div>}
   </main>;
+}
+
+function Radio({ active }: { active: boolean }) {
+  return <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${active ? "border-[var(--brand)]" : "border-black/20"}`}>{active && <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)]" />}</span>;
+}
+
+function Checkbox({ active }: { active: boolean }) {
+  return <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${active ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-black/20"}`}>{active && <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 8l3.5 3.5L13 5" strokeLinecap="round" strokeLinejoin="round" /></svg>}</span>;
 }
 
 function ItemImage({ item }: { item: MenuItem }) {
