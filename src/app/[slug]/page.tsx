@@ -112,50 +112,55 @@ export default function ShopPage() {
   </button>)}</div>;
   const deliveryNote = isDelivery ? <div className={`mt-2 rounded-xl p-3 text-sm font-bold ${deliveryBelowMin ? "bg-red-50 text-red-700" : "bg-[#eef7ed] text-green-700"}`}>{deliveryBelowMin ? `Dodaj još ${money(deliveryRemaining)} do minimalnog iznosa za dostavu (${money(minDelivery)}).` : `Minimalni iznos za dostavu (${money(minDelivery)}) je ispunjen ✓`}</div> : null;
 
-  return <main className="min-h-screen bg-[#f7f7f4] pb-28">
-    <header className="border-b-4 border-black bg-[#171714] px-4 py-3 text-white sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl min-w-0 items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-white bg-[var(--brand)] text-2xl">{shop.logo}</div>
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-black uppercase leading-none tracking-tight">{shop.name}</h1>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-white/60">
-            <span className="font-bold text-white"><span className="text-[var(--brand)]">★</span> {shop.rating}</span>
-            <span>· {shop.prepTime}</span>
-            <span className="font-bold text-green-400">· Otvoreno</span>
-          </p>
+  return <main className="min-h-screen bg-[var(--background)] pb-28">
+    <header className="relative overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/cheeseburger.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
+      <div className="relative mx-auto max-w-6xl px-5 py-7 sm:px-8 lg:px-12">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-3xl shadow-lg ring-1 ring-white/25 backdrop-blur-md">{shop.logo}</div>
+          <div className="min-w-0 text-white">
+            <h1 className="font-display truncate text-2xl font-extrabold leading-tight sm:text-3xl">{shop.name}</h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 font-semibold backdrop-blur-md"><span className="text-[var(--brand)]">★</span> {shop.rating}</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/25 px-2.5 py-1 font-semibold text-green-50 backdrop-blur-md"><span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Otvoreno</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 font-medium backdrop-blur-md">🕒 {shop.prepTime}</span>
+            </div>
+          </div>
         </div>
-        <div className="ml-auto hidden flex-wrap items-center justify-end gap-2 md:flex">
-          <span className="border-2 border-white/20 px-2 py-1 text-[11px] font-bold text-white/80">📍 {shop.address}</span>
-          <span className="border-2 border-white/20 px-2 py-1 text-[11px] font-bold text-white/80">🕒 {shop.hours}</span>
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-[13px] font-medium text-white/85">
+          <span className="inline-flex items-center gap-1.5">📍 {shop.address}</span>
+          <span className="inline-flex items-center gap-1.5">🕒 {shop.hours}</span>
         </div>
       </div>
     </header>
 
-    <section className="sticky top-0 z-10 overflow-x-auto border-b-4 border-black bg-[#f7f7f4] px-5 py-4 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap border-2 border-black px-4 py-2 text-sm font-black uppercase transition ${category === item ? "bg-black text-white brutal-shadow-sm" : "bg-white text-black"}`}>{item}</button>)}</div>
+    <section className="no-scrollbar sticky top-0 z-10 overflow-x-auto bg-[var(--background)]/90 px-5 py-3 backdrop-blur sm:px-8 lg:px-12">
+      <div className="mx-auto flex max-w-6xl gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${category === item ? "bg-[var(--brand)] text-white shadow-sm shadow-[var(--brand)]/30" : "bg-black/[0.04] text-[var(--muted)] hover:bg-black/[0.08]"}`}>{item}</button>)}</div>
     </section>
 
-    <section className="mx-auto grid max-w-6xl gap-2.5 px-5 py-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 lg:px-12">
-      {visible.map((item) => <article key={item.id} className="flex gap-3 border-2 border-black bg-white p-2.5 brutal-shadow-sm">
+    <section className="mx-auto grid max-w-6xl gap-3.5 px-5 py-5 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 lg:gap-5 lg:px-12">
+      {visible.map((item) => <article key={item.id} className="flex overflow-hidden rounded-2xl bg-[var(--surface)] card-shadow transition duration-200 hover:-translate-y-0.5 hover:card-shadow-lg">
         <ItemImage item={item} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h2 className="text-sm font-black uppercase leading-tight tracking-tight">{item.name}</h2>
-          <p className="mt-0.5 line-clamp-2 text-xs text-[var(--muted)]">{item.description}</p>
-          <div className="mt-auto flex items-center justify-between pt-2">
-            <strong className="text-sm font-black">{item.sizes ? `od ${money(item.price)}` : money(item.price)}</strong>
-            <button onClick={() => openCustomization(item)} className="border-2 border-black bg-black px-3 py-1 text-xs font-black uppercase text-white transition hover:bg-[var(--brand)] hover:text-black active:scale-95">+ Dodaj</button>
+        <div className="flex min-w-0 flex-1 flex-col p-3.5">
+          <h2 className="font-display text-base font-bold leading-tight">{item.name}</h2>
+          <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-[var(--muted)]">{item.description}</p>
+          <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+            <strong className="text-lg font-extrabold text-[var(--brand)]">{item.sizes ? `od ${money(item.price)}` : money(item.price)}</strong>
+            <button onClick={() => openCustomization(item)} aria-label={`Dodaj ${item.name}`} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-2xl leading-none text-white shadow-sm shadow-[var(--brand)]/40 transition hover:bg-[var(--brand-dark)] active:scale-90">+</button>
           </div>
         </div>
       </article>)}
     </section>
 
-    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => setShowCart(true)} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between border-2 border-black bg-[var(--brand)] px-5 py-4 font-black uppercase text-black brutal-shadow-lg safe-bottom active:scale-[0.98]">
+    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => setShowCart(true)} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--brand)] px-5 py-4 font-bold text-white shadow-xl shadow-[var(--brand)]/30 safe-bottom active:scale-[0.98]">
       <span>{totalItems} {totalItems === 1 ? "stavka" : "stavke"}</span>
       <span>Košarica · {money(subtotal)}</span>
     </button>}
 
     {selectedItem && <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSelectedItem(null)}>
-      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[#f7f7f4] p-5">
+      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5">
         <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-sm font-bold text-[var(--brand)]">Prilagodi narudžbu</p>
@@ -183,7 +188,7 @@ export default function ShopPage() {
     </div>}
 
     {showCart && <div className="fixed inset-0 z-30 bg-black/40" onClick={closeSheet}>
-      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[#f7f7f4] p-5 safe-bottom">
+      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5 safe-bottom">
         {confirmed ? <div className="py-4 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">✓</div>
           <h2 className="text-2xl font-black">Hvala na narudžbi!</h2>
@@ -267,8 +272,8 @@ function ItemImage({ item }: { item: MenuItem }) {
   if (item.image && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={item.image} alt={item.name} loading="lazy" onError={() => setFailed(true)} className="h-20 w-20 shrink-0 border-2 border-black bg-[#fff0e8] object-cover" />
+      <img src={item.image} alt={item.name} loading="lazy" onError={() => setFailed(true)} className="w-24 shrink-0 self-stretch bg-[#f3ede6] object-cover sm:w-28" />
     );
   }
-  return <div className="flex h-20 w-20 shrink-0 items-center justify-center border-2 border-black bg-[#fff0e8] text-3xl">{item.emoji}</div>;
+  return <div className="flex w-24 shrink-0 items-center justify-center self-stretch bg-[#f3ede6] text-4xl sm:w-28">{item.emoji}</div>;
 }
