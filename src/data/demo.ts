@@ -14,7 +14,7 @@ export type MenuItem = {
   extraOptions?: ExtraOption[];
 };
 
-const burgerSauces = ["Kečap", "Majoneza", "Ljuti umak", "BBQ", "Češnjak"];
+const burgerSauces = ["Kečap", "Majoneza", "Ljuti umak", "BBQ"];
 const burgerExtras: ExtraOption[] = [
   { name: "Salata", price: 0 },
   { name: "Rajčica", price: 0 },
@@ -42,7 +42,7 @@ export const menu: MenuItem[] = [
   { id: "cheeseburger", name: "Cheeseburger", description: "Sočna pljeskavica, cheddar, salata i umak u pecivu", price: 4.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
   { id: "double-burger", name: "Dvostruki burger", description: "Dvije pljeskavice, dupli cheddar i hrskava slanina", price: 6.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/double-burger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
   { id: "chicken-burger", name: "Piletina burger", description: "Hrskava piletina, salata i umak po izboru", price: 5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/chicken-burger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
-  { id: "gablec", name: "Gablec dana", description: "Pljeskavica, pomfrit i salata — domaći gablec", price: 6, category: "Gablec", available: true, emoji: "🍽️", image: "/images/gablec.jpg", sizes: [{ label: "Normalni", delta: 0 }, { label: "Veliki", delta: 1.5 }], sauceOptions: ["Ajvar", "Vrhnje", "Ljuti umak", "Češnjak"], extraOptions: [{ name: "Salata", price: 0 }, { name: "Luk", price: 0 }, { name: "Vrhnje", price: 0.5 }, { name: "Feferoni", price: 0.5 }] },
+  { id: "gablec", name: "Gablec dana", description: "Pljeskavica, pomfrit i salata — domaći gablec", price: 6, category: "Gablec", available: true, emoji: "🍽️", image: "/images/gablec.jpg", sizes: [{ label: "Normalni", delta: 0 }, { label: "Veliki", delta: 1.5 }], sauceOptions: ["Ajvar", "Vrhnje", "Ljuti umak"], extraOptions: [{ name: "Salata", price: 0 }, { name: "Luk", price: 0 }, { name: "Vrhnje", price: 0.5 }, { name: "Feferoni", price: 0.5 }] },
   { id: "cevapi", name: "Ćevapi u lepinji", description: "10 ćevapa, lepinja, ajvar i luk", price: 5.5, category: "Gablec", available: true, emoji: "🥙", sauceOptions: ["Ajvar", "Kajmak", "Ljuti umak"], extraOptions: [{ name: "Luk", price: 0 }, { name: "Feferoni", price: 0.5 }, { name: "Kajmak", price: 0.8 }, { name: "Dodatna lepinja", price: 0.8 }], image: "/images/cevapi.jpg" },
   { id: "fries", name: "Pomfrit", description: "Hrskavi zlatni pomfrit", price: 2.5, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg", sizes: [{ label: "Mala", delta: 0 }, { label: "Velika", delta: 1.5 }], sauceOptions: ["Kečap", "Majoneza", "Ljuti umak"], extraOptions: [{ name: "Cheddar preljev", price: 1 }] },
   { id: "onion-rings", name: "Prženi luk", description: "Hrskavi pohani kolutovi luka", price: 3, category: "Prilozi", available: true, emoji: "🧅", image: "/images/onion-rings.jpg", extraOptions: [{ name: "Umak za umakanje", price: 0.8 }] },
