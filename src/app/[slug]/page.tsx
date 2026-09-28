@@ -113,12 +113,12 @@ export default function ShopPage() {
   const deliveryNote = isDelivery ? <div className={`mt-2 rounded-xl p-3 text-sm font-bold ${deliveryBelowMin ? "bg-red-50 text-red-700" : "bg-[#eef7ed] text-green-700"}`}>{deliveryBelowMin ? `Dodaj još ${money(deliveryRemaining)} do minimalnog iznosa za dostavu (${money(minDelivery)}).` : `Minimalni iznos za dostavu (${money(minDelivery)}) je ispunjen ✓`}</div> : null;
 
   return <main className="min-h-screen bg-[#f7f7f4] pb-28">
-    <header className="bg-[#171714] px-4 py-3 text-white sm:px-8 lg:px-12">
+    <header className="border-b-4 border-black bg-[#171714] px-4 py-3 text-white sm:px-8 lg:px-12">
       <div className="mx-auto flex max-w-6xl min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--brand)] text-2xl shadow">{shop.logo}</div>
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-white bg-[var(--brand)] text-2xl">{shop.logo}</div>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-black leading-tight">{shop.name}</h1>
-          <p className="flex flex-wrap items-center gap-x-2 text-[11px] text-white/60">
+          <h1 className="truncate text-xl font-black uppercase leading-none tracking-tight">{shop.name}</h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-white/60">
             <span className="font-bold text-white"><span className="text-[var(--brand)]">★</span> {shop.rating}</span>
             <span>· {shop.prepTime}</span>
             <span className="font-bold text-green-400">· Otvoreno</span>
@@ -127,25 +127,33 @@ export default function ShopPage() {
       </div>
     </header>
 
-    <section className="sticky top-0 z-10 overflow-x-auto border-b border-black/5 bg-[#f7f7f4]/95 px-5 py-4 backdrop-blur sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-6xl gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold ${category === item ? "bg-black text-white" : "bg-white text-[var(--muted)]"}`}>{item}</button>)}</div>
+    <section className="border-b-4 border-black bg-[var(--brand)] px-5 py-2.5 sm:px-8 lg:px-12">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1.5">
+        <h2 className="text-sm font-black uppercase leading-none text-black">{shop.tagline}</h2>
+        <span className="border-2 border-black bg-white px-2 py-0.5 text-[11px] font-black uppercase">📍 {shop.address}</span>
+        <span className="border-2 border-black bg-white px-2 py-0.5 text-[11px] font-black uppercase">🕒 {shop.hours}</span>
+      </div>
     </section>
 
-    <section className="mx-auto grid max-w-6xl gap-3 px-5 py-5 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 lg:gap-5 lg:px-12">
-      {visible.map((item) => <article key={item.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm sm:p-4">
+    <section className="sticky top-0 z-10 overflow-x-auto border-b-4 border-black bg-[#f7f7f4] px-5 py-4 sm:px-8 lg:px-12">
+      <div className="mx-auto flex max-w-6xl gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap border-2 border-black px-4 py-2 text-sm font-black uppercase transition ${category === item ? "bg-black text-white brutal-shadow-sm" : "bg-white text-black"}`}>{item}</button>)}</div>
+    </section>
+
+    <section className="mx-auto grid max-w-6xl gap-2.5 px-5 py-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 lg:px-12">
+      {visible.map((item) => <article key={item.id} className="flex gap-3 border-2 border-black bg-white p-2.5 brutal-shadow-sm">
         <ItemImage item={item} />
-        <div className="min-w-0 flex-1">
-          <h2 className="font-bold">{item.name}</h2>
-          <div className="mt-2 flex flex-wrap gap-1.5">{(productTags[item.id] ?? []).map((tag, index) => <span key={tag} className={`rounded-full px-2 py-1 text-[10px] font-bold ${index % 3 === 0 ? "bg-[#fff0e8] text-[var(--brand-dark)]" : index % 3 === 1 ? "bg-[#eef7ed] text-green-700" : "bg-[#eef2ff] text-blue-700"}`}>{tag}</span>)}</div>
-          <div className="mt-3 flex items-center justify-between">
-            <strong>{item.sizes ? `od ${money(item.price)}` : money(item.price)}</strong>
-            <button onClick={() => openCustomization(item)} className="rounded-lg bg-[#fff0e8] px-3 py-1.5 text-sm font-bold text-[var(--brand-dark)] transition active:scale-95">+ Dodaj</button>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h2 className="text-sm font-black uppercase leading-tight tracking-tight">{item.name}</h2>
+          <p className="mt-0.5 line-clamp-2 text-xs text-[var(--muted)]">{item.description}</p>
+          <div className="mt-auto flex items-center justify-between pt-2">
+            <strong className="text-sm font-black">{item.sizes ? `od ${money(item.price)}` : money(item.price)}</strong>
+            <button onClick={() => openCustomization(item)} className="border-2 border-black bg-black px-3 py-1 text-xs font-black uppercase text-white transition hover:bg-[var(--brand)] hover:text-black active:scale-95">+ Dodaj</button>
           </div>
         </div>
       </article>)}
     </section>
 
-    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => setShowCart(true)} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--brand)] px-5 py-4 font-bold text-white shadow-xl safe-bottom">
+    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => setShowCart(true)} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between border-2 border-black bg-[var(--brand)] px-5 py-4 font-black uppercase text-black brutal-shadow-lg safe-bottom active:scale-[0.98]">
       <span>{totalItems} {totalItems === 1 ? "stavka" : "stavke"}</span>
       <span>Košarica · {money(subtotal)}</span>
     </button>}
@@ -263,8 +271,8 @@ function ItemImage({ item }: { item: MenuItem }) {
   if (item.image && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={item.image} alt={item.name} loading="lazy" onError={() => setFailed(true)} className="h-20 w-20 shrink-0 rounded-xl bg-[#fff0e8] object-cover sm:h-24 sm:w-24" />
+      <img src={item.image} alt={item.name} loading="lazy" onError={() => setFailed(true)} className="h-20 w-20 shrink-0 border-2 border-black bg-[#fff0e8] object-cover" />
     );
   }
-  return <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[#fff0e8] text-4xl sm:h-24 sm:w-24">{item.emoji}</div>;
+  return <div className="flex h-20 w-20 shrink-0 items-center justify-center border-2 border-black bg-[#fff0e8] text-3xl">{item.emoji}</div>;
 }

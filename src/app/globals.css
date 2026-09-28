@@ -24,3 +24,8 @@ body {
 }
 button, input, textarea, select { font: inherit; }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Neo-brutalist utilities: tvrde offset sjene bez blura */
+.brutal-shadow { box-shadow: 4px 4px 0 0 var(--foreground); }
+.brutal-shadow-sm { box-shadow: 2px 2px 0 0 var(--foreground); }
+.brutal-shadow-lg { box-shadow: 7px 7px 0 0 var(--foreground); }
