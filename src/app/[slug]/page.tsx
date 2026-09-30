@@ -21,7 +21,7 @@ const orderTypeOptions: { key: OrderType; Icon: typeof Store; label: string; sub
   { key: "delivery", Icon: Bike, label: "Dostava", sub: "Besplatna dostava" },
 ];
 const paymentOptions: { key: Payment; Icon: typeof Banknote; label: string }[] = [
-  { key: "cash", Icon: Banknote, label: "Gotovina" },
+  { key: "cash", Icon: Banknote, label: "Prilikom preuzimanja" },
   { key: "card", Icon: CreditCard, label: "Karticom online" },
 ];
 
