@@ -164,8 +164,8 @@ export default function ShopPage() {
       <span>Košarica · {money(subtotal)}</span>
     </button>}
 
-    {selectedItem && <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSelectedItem(null)}>
-      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 flex max-h-[92vh] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-3xl bg-[var(--background)]">
+    {selectedItem && <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center sm:p-6" onClick={() => setSelectedItem(null)}>
+      <div onClick={(event) => event.stopPropagation()} className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-[var(--background)] sm:rounded-3xl sm:shadow-2xl">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="relative">
             {selectedItem.image
@@ -220,8 +220,8 @@ export default function ShopPage() {
       </div>
     </div>}
 
-    {showCart && <div className="fixed inset-0 z-30 bg-black/40" onClick={closeSheet}>
-      <div onClick={(event) => event.stopPropagation()} className="absolute bottom-0 left-1/2 max-h-[92vh] w-full max-w-md -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5 safe-bottom">
+    {showCart && <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 sm:items-center sm:p-6" onClick={closeSheet}>
+      <div onClick={(event) => event.stopPropagation()} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5 safe-bottom sm:rounded-3xl sm:shadow-2xl">
         {confirmed ? <div className="py-4 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">✓</div>
           <h2 className="text-2xl font-black">Hvala na narudžbi!</h2>
