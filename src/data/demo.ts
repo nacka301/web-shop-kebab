@@ -11,45 +11,41 @@ export type MenuItem = {
   image?: string;
   sizes?: SizeOption[];
   sauceOptions?: string[];
+  sideOptions?: string[];
   extraOptions?: ExtraOption[];
 };
 
-const burgerSauces = ["Kečap", "Majoneza", "Ljuti umak", "BBQ"];
-const burgerExtras: ExtraOption[] = [
-  { name: "Salata", price: 0 },
-  { name: "Rajčica", price: 0 },
-  { name: "Luk", price: 0 },
-  { name: "Kiseli krastavci", price: 0 },
-  { name: "Cheddar", price: 1 },
-  { name: "Slanina", price: 1 },
-  { name: "Feferoni", price: 0.5 },
+const smashSauces = ["Smash umak", "Majoneza", "Kečap ljuti", "Kečap blagi", "Ajvar", "Senf"];
+const smashSides = ["Zelena salata", "Rajčica", "Kiseli krastavci", "Svježi krastavci", "Kukuruz", "Luk"];
+const smashExtras: ExtraOption[] = [
+  { name: "Slanina", price: 0.5 },
+  { name: "Sir listić", price: 0.5 },
+  { name: "Sok 0,5 L", price: 2 },
 ];
 
 export const shop = {
-  slug: "grill-box",
-  name: "Grill Box",
+  slug: "smash",
+  name: "SMASH",
   logo: "🍔",
-  tagline: "Burgeri, gablec i roštilj — brzo i domaće",
+  tagline: "Smash burgeri i sendviči iz Vinkovaca",
   description:
-    "Svježe pljeskavice s roštilja, hrskavi pomfrit i domaći gablec svaki dan. Naruči online i preuzmi bez čekanja u redu.",
-  address: "Ulica Republike 12, Osijek",
-  hours: "Danas otvoreno · 09:00 – 23:00",
-  rating: "4,8",
-  prepTime: "15 – 20 min",
+    "Domaće pecivo s krumpirom, smash pljeskavice i hrskavi waffle fries — svaki dan svježe u Vinkovcima. Naruči online i preuzmi bez čekanja u redu.",
+  address: "Vinkovci",
+  hours: "Svaki dan 17:00 – 23:00 · ponedjeljkom zatvoreno",
+  rating: "5,0",
+  prepTime: "10 – 15 min",
 };
 
 export const menu: MenuItem[] = [
-  { id: "cheeseburger", name: "Cheeseburger", description: "Sočna pljeskavica, cheddar, salata i umak u pecivu", price: 4.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
-  { id: "double-burger", name: "Dvostruki burger", description: "Dvije pljeskavice, dupli cheddar i hrskava slanina", price: 6.5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/double-burger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
-  { id: "chicken-burger", name: "Piletina burger", description: "Hrskava piletina, salata i umak po izboru", price: 5, category: "Burgeri", available: true, emoji: "🍔", image: "/images/chicken-burger.jpg", sauceOptions: burgerSauces, extraOptions: burgerExtras },
-  { id: "gablec", name: "Gablec dana", description: "Pljeskavica, pomfrit i salata — domaći gablec", price: 6, category: "Gablec", available: true, emoji: "🍽️", image: "/images/gablec.jpg", sizes: [{ label: "Normalni", delta: 0 }, { label: "Veliki", delta: 1.5 }], sauceOptions: ["Ajvar", "Vrhnje", "Ljuti umak"], extraOptions: [{ name: "Salata", price: 0 }, { name: "Luk", price: 0 }, { name: "Vrhnje", price: 0.5 }, { name: "Feferoni", price: 0.5 }] },
-  { id: "cevapi", name: "Ćevapi u lepinji", description: "10 ćevapa, lepinja, ajvar i luk", price: 5.5, category: "Gablec", available: true, emoji: "🥙", sauceOptions: ["Ajvar", "Kajmak", "Ljuti umak"], extraOptions: [{ name: "Luk", price: 0 }, { name: "Feferoni", price: 0.5 }, { name: "Kajmak", price: 0.8 }, { name: "Dodatna lepinja", price: 0.8 }], image: "/images/cevapi.jpg" },
-  { id: "fries", name: "Pomfrit", description: "Hrskavi zlatni pomfrit", price: 2.5, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg", sizes: [{ label: "Mala", delta: 0 }, { label: "Velika", delta: 1.5 }], sauceOptions: ["Kečap", "Majoneza", "Ljuti umak"], extraOptions: [{ name: "Cheddar preljev", price: 1 }] },
-  { id: "onion-rings", name: "Prženi luk", description: "Hrskavi pohani kolutovi luka", price: 3, category: "Prilozi", available: true, emoji: "🧅", image: "/images/onion-rings.jpg", extraOptions: [{ name: "Umak za umakanje", price: 0.8 }] },
-  { id: "tost", name: "Tost", description: "Šunka, sir i maslac u prepečenom kruhu", price: 3, category: "Ostalo", available: true, emoji: "🥪", image: "/images/tost.jpg", extraOptions: [{ name: "Dodatna šunka", price: 1 }, { name: "Dodatni sir", price: 1 }] },
-  { id: "hot-dog", name: "Hot dog", description: "Hrenovka u pecivu s umakom po izboru", price: 3.5, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg", sauceOptions: ["Kečap", "Senf", "Majoneza"], extraOptions: [{ name: "Luk", price: 0 }, { name: "Kiseli krastavci", price: 0 }, { name: "Slanina", price: 1 }] },
-  { id: "cola", name: "Coca-Cola", description: "Ohlađeno gazirano piće", price: 2, category: "Piće", available: true, emoji: "🥤", image: "/images/cola.jpg", sizes: [{ label: "0,5 l boca", delta: 0 }, { label: "0,33 l limenka", delta: -0.3 }] },
-  { id: "voda", name: "Voda 0,5 l", description: "Negazirana izvorska voda", price: 1.5, category: "Piće", available: true, emoji: "💧", image: "/images/voda.jpg" },
+  { id: "smash-classic", name: "Smash Classic", description: "Domaće pecivo s krumpirom, junetina x2, cheddar sir x2, kiseli krastavci, umak po izboru", price: 4, category: "Smash burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
+  { id: "smash-onion", name: "Smash Onion", description: "Domaće pecivo s krumpirom, junetina x2, pržena na luku, cheddar sir x2, umak po izboru", price: 5, category: "Smash burgeri", available: true, emoji: "🍔", image: "/images/double-burger.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
+  { id: "smash-chicken", name: "Smash Chicken", description: "Domaće pecivo, pohana piletina, umak i salata po izboru", price: 5, category: "Smash burgeri", available: true, emoji: "🍗", image: "/images/chicken-burger.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
+  { id: "sendvic-sunka", name: "Sendvič Šunka", description: "Domaće pecivo s krumpirom, šunka, sir Gauda, umak i salata po izboru", price: 3.5, category: "Sendviči", available: true, emoji: "🥪", image: "/images/tost.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
+  { id: "sendvic-kulen", name: "Sendvič Kulen", description: "Domaće pecivo s krumpirom, kulen, sir Gauda, umak i salata po izboru", price: 4, category: "Sendviči", available: true, emoji: "🥪", image: "/images/tost.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
+  { id: "sendvic-tuna", name: "Sendvič Tuna", description: "Pecivo, tuna, salata i umak po izboru", price: 4, category: "Sendviči", available: true, emoji: "🥪", image: "/images/tost.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
+  { id: "hot-dog", name: "Hot Dog", description: "Pecivo, grill kobasica, umak po izboru", price: 2, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
+  { id: "waffle-fries", name: "Waffle Fries", description: "Domaći waffle fries krumpirići", price: 2.5, category: "Prilozi", available: true, emoji: "🧇", image: "/images/fries.jpg" },
+  { id: "pommes-frites", name: "Pommes Frites", description: "Klasični hrskavi pomfrit", price: 2, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg" },
 ];
 
 export type OrderStatus = "nova" | "u_pripremi" | "spremna" | "preuzeta";
@@ -66,7 +62,7 @@ export type Order = {
 };
 
 export const demoOrders: Order[] = [
-  { id: "#1048", customer: "Marko Horvat", phone: "091 234 5678", items: "1× Dvostruki burger, 1× Coca-Cola", total: 8.5, pickup: "Što prije", note: "Bez luka, molim", status: "nova", createdAt: "upravo sada" },
-  { id: "#1047", customer: "Ana Kovač", phone: "098 111 2233", items: "2× Cheeseburger", total: 9, pickup: "Za 30 min", note: "", status: "u_pripremi", createdAt: "prije 4 min" },
-  { id: "#1046", customer: "Ivan Babić", phone: "095 444 5566", items: "1× Gablec dana, 1× Pomfrit", total: 8.5, pickup: "Za 45 min", note: "", status: "spremna", createdAt: "prije 12 min" },
+  { id: "#1048", customer: "Marko Horvat", phone: "091 234 5678", items: "1× Smash Onion, 1× Sok 0,5 L", total: 7, pickup: "Što prije", note: "Bez luka, molim", status: "nova", createdAt: "upravo sada" },
+  { id: "#1047", customer: "Ana Kovač", phone: "098 111 2233", items: "2× Smash Classic", total: 8, pickup: "Za 30 min", note: "", status: "u_pripremi", createdAt: "prije 4 min" },
+  { id: "#1046", customer: "Ivan Babić", phone: "095 444 5566", items: "1× Sendvič Kulen, 1× Pommes Frites", total: 6, pickup: "Za 45 min", note: "", status: "spremna", createdAt: "prije 12 min" },
 ];

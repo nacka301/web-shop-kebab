@@ -6,7 +6,7 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const poppins = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: "Grill Box",
+  title: "SMASH",
   description: "Naruči omiljeni fast food bez čekanja.",
 };
 

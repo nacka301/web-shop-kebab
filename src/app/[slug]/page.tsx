@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { menu, shop, type MenuItem } from "@/data/demo";
 
-type CartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[]; size: string | null; unitPrice: number };
+type CartItem = MenuItem & { quantity: number; sauces: string[]; sides: string[]; extras: string[]; size: string | null; unitPrice: number };
 type OrderType = "pickup" | "delivery";
 type Payment = "cash" | "card";
 // Svaki "korak" (modal artikla, košarica, checkout, potvrda) je jedan unos u browser historiji,
@@ -11,23 +11,10 @@ type Payment = "cash" | "card";
 type View = "menu" | "item" | "cart" | "checkout" | "confirmed";
 const viewDepth: Record<View, number> = { menu: 0, item: 1, cart: 1, checkout: 2, confirmed: 3 };
 
-const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
+const foodCategories = ["Smash burgeri", "Sendviči", "Ostalo"];
 const minDelivery = 15;
 const money = (value: number) => `${value.toFixed(2).replace(".", ",")} €`;
 const signedMoney = (value: number) => (value > 0 ? `+ ${money(value)}` : value < 0 ? `− ${money(Math.abs(value))}` : "uključeno");
-const productTags: Record<string, string[]> = {
-  cheeseburger: ["Junetina", "Cheddar", "Salata", "Umak"],
-  "double-burger": ["2× pljeskavica", "Cheddar", "Slanina"],
-  "chicken-burger": ["Piletina", "Salata", "Umak"],
-  gablec: ["Pljeskavica", "Pomfrit", "Salata"],
-  cevapi: ["10 komada", "Lepinja", "Ajvar", "Luk"],
-  fries: ["Hrskavi pomfrit"],
-  "onion-rings": ["Pohani luk"],
-  tost: ["Šunka", "Sir"],
-  "hot-dog": ["Hrenovka", "Pecivo", "Umak"],
-  cola: ["Ohlađeno piće"],
-  voda: ["Negazirana"],
-};
 const orderTypeOptions: { key: OrderType; icon: string; label: string; sub: string }[] = [
   { key: "pickup", icon: "🏪", label: "Preuzimanje", sub: "U radnji · besplatno" },
   { key: "delivery", icon: "🛵", label: "Dostava", sub: "Besplatna dostava" },
@@ -41,6 +28,7 @@ export default function ShopPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [selectedSauce, setSelectedSauce] = useState<string | null>(null);
+  const [selectedSide, setSelectedSide] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [configQty, setConfigQty] = useState(1);
@@ -84,6 +72,7 @@ export default function ShopPage() {
   const openCustomization = (item: MenuItem) => {
     setSelectedItem(item);
     setSelectedSauce(null);
+    setSelectedSide(null);
     setSelectedExtras([]);
     setSelectedSize(item.sizes?.[0]?.label ?? null);
     setConfigQty(1);
@@ -94,7 +83,7 @@ export default function ShopPage() {
   };
   const addConfigured = () => {
     if (!selectedItem) return;
-    setCart((current) => [...current, { ...selectedItem, id: `${selectedItem.id}-${Date.now()}`, quantity: configQty, sauces: selectedSauce ? [selectedSauce] : [], extras: selectedExtras, size: selectedSize, unitPrice: unitConfigured }]);
+    setCart((current) => [...current, { ...selectedItem, id: `${selectedItem.id}-${Date.now()}`, quantity: configQty, sauces: selectedSauce ? [selectedSauce] : [], sides: selectedSide ? [selectedSide] : [], extras: selectedExtras, size: selectedSize, unitPrice: unitConfigured }]);
     window.history.back();
   };
   const changeQuantity = (id: string, amount: number) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + amount > 0 ? [{ ...item, quantity: item.quantity + amount }] : []) : [item]));
@@ -179,7 +168,7 @@ export default function ShopPage() {
   return <main className="min-h-screen bg-[var(--background)] pb-28">
     <header className="relative overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/cheeseburger.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+      <img src="/images/double-burger.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35" />
       <div className="relative mx-auto max-w-6xl px-5 py-7 sm:px-8 lg:px-12">
         <div className="flex items-center gap-3.5">
@@ -255,8 +244,16 @@ export default function ShopPage() {
               </button>)}</div>
             </section>}
 
+            {selectedItem.sideOptions && selectedItem.sideOptions.length > 0 && <section className="mt-5">
+              <h3 className="font-display text-base font-bold">Prilog <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi 1, po želji)</span></h3>
+              <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{selectedItem.sideOptions.map((side, index) => <button key={side} onClick={() => setSelectedSide(selectedSide === side ? null : side)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
+                <span className="text-sm font-semibold">{side}</span>
+                <Radio active={selectedSide === side} />
+              </button>)}</div>
+            </section>}
+
             {selectedItem.extraOptions && selectedItem.extraOptions.length > 0 && <section className="mt-5">
-              <h3 className="font-display text-base font-bold">Prilozi <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi više)</span></h3>
+              <h3 className="font-display text-base font-bold">Dodaci <span className="ml-1 text-xs font-normal text-[var(--muted)]">(odaberi više)</span></h3>
               <div className="mt-2 overflow-hidden rounded-2xl bg-white card-shadow">{selectedItem.extraOptions.map((extra, index) => {
                 const on = selectedExtras.includes(extra.name);
                 return <button key={extra.name} onClick={() => toggleChoice(extra.name, selectedExtras, setSelectedExtras)} className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
@@ -304,7 +301,7 @@ export default function ShopPage() {
           {!checkout ? <>
             <div className="mb-4">{orderTypeSelector}{deliveryNote}</div>
             <div className="overflow-hidden rounded-2xl bg-white card-shadow">{cart.map((item, index) => {
-              const details = [...item.sauces, ...item.extras].join(", ") || (foodCategories.includes(item.category) ? "Bez dodataka" : "");
+              const details = [...item.sauces, ...item.sides, ...item.extras].join(", ") || (foodCategories.includes(item.category) ? "Bez dodataka" : "");
               return <div key={item.id} className={`flex items-center gap-3 p-3.5 ${index > 0 ? "border-t border-black/[0.06]" : ""}`}>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold leading-tight">{item.name}{item.size ? <span className="font-normal text-[var(--muted)]"> · {item.size}</span> : ""}</p>
