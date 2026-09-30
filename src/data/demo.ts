@@ -13,6 +13,7 @@ export type MenuItem = {
   sauceOptions?: string[];
   sideOptions?: string[];
   extraOptions?: ExtraOption[];
+  bestseller?: boolean;
 };
 
 const smashSauces = ["Smash umak", "Majoneza", "Kečap ljuti", "Kečap blagi", "Ajvar", "Senf"];
@@ -32,18 +33,21 @@ export const shop = {
     "Domaće pecivo s krumpirom, smash pljeskavice i hrskavi waffle fries — svaki dan svježe u Vinkovcima. Naruči online i preuzmi bez čekanja u redu.",
   address: "Vinkovci",
   hours: "Svaki dan 17:00 – 23:00 · ponedjeljkom zatvoreno",
+  hoursStart: "17:00",
+  hoursEnd: "23:00",
+  closedWeekdays: [1] as number[], // 1 = ponedjeljak (Date#getDay(): 0 = nedjelja)
   rating: "5,0",
   prepTime: "10 – 15 min",
 };
 
 export const menu: MenuItem[] = [
-  { id: "smash-classic", name: "Smash Classic", description: "Domaće pecivo s krumpirom, junetina x2, cheddar sir x2, kiseli krastavci, umak po izboru", price: 4, category: "Smash burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
+  { id: "smash-classic", name: "Smash Classic", description: "Domaće pecivo s krumpirom, junetina x2, cheddar sir x2, kiseli krastavci, umak po izboru", price: 4, category: "Smash burgeri", available: true, emoji: "🍔", image: "/images/cheeseburger.jpg", sauceOptions: smashSauces, extraOptions: smashExtras, bestseller: true },
   { id: "smash-onion", name: "Smash Onion", description: "Domaće pecivo s krumpirom, junetina x2, pržena na luku, cheddar sir x2, umak po izboru", price: 5, category: "Smash burgeri", available: true, emoji: "🍔", image: "/images/smash-onion.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
   { id: "smash-chicken", name: "Smash Chicken", description: "Domaće pecivo, pohana piletina, umak i salata po izboru", price: 5, category: "Smash burgeri", available: true, emoji: "🍗", image: "/images/chicken-burger.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
   { id: "sendvic-sunka", name: "Sendvič Šunka", description: "Domaće pecivo s krumpirom, šunka, sir Gauda, umak i salata po izboru", price: 3.5, category: "Sendviči", available: true, emoji: "🥪", image: "/images/tost.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
   { id: "sendvic-kulen", name: "Sendvič Kulen", description: "Domaće pecivo s krumpirom, kulen, sir Gauda, umak i salata po izboru", price: 4, category: "Sendviči", available: true, emoji: "🥪", image: "/images/tost.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
   { id: "sendvic-tuna", name: "Sendvič Tuna", description: "Pecivo, tuna, salata i umak po izboru", price: 4, category: "Sendviči", available: true, emoji: "🥪", image: "/images/sendvic-tuna.jpg", sauceOptions: smashSauces, sideOptions: smashSides, extraOptions: smashExtras },
-  { id: "hot-dog", name: "Hot Dog", description: "Pecivo, grill kobasica, umak po izboru", price: 2, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
+  { id: "hot-dog", name: "Hot Dog", description: "Pecivo, grill kobasica, umak po izboru", price: 2, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg", sauceOptions: smashSauces, extraOptions: smashExtras, bestseller: true },
   { id: "waffle-fries", name: "Waffle Fries", description: "Domaći waffle fries krumpirići", price: 2.5, category: "Prilozi", available: true, emoji: "🧇", image: "/images/waffle-fries.jpg" },
   { id: "pommes-frites", name: "Pommes Frites", description: "Klasični hrskavi pomfrit", price: 2, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg" },
   { id: "cola", name: "Coca-Cola", description: "Ohlađeno gazirano piće", price: 2, category: "Piće", available: true, emoji: "🥤", image: "/images/cola.jpg" },

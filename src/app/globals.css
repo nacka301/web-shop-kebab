@@ -1,37 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf6f0;
-  --foreground: #212529;
-  --muted: #6b7280;
-  --brand: #ff6b35;
-  --brand-dark: #e2551f;
+  --background: #f6f5f2;
+  --foreground: #201c18;
+  --muted: #75726c;
+  --brand: #e8491d;
+  --brand-dark: #c93c14;
   --surface: #ffffff;
+  --border: #e8e6e1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-poppins);
+  --font-sans: var(--font-jakarta);
+  --font-display: var(--font-jakarta);
 }
 
 * { box-sizing: border-box; }
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 button, input, textarea, select { font: inherit; }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
 /* Moderni, mekani UI: naslovni font, meke sjene, skriveni scrollbar */
-.font-display { font-family: var(--font-poppins), var(--font-inter), sans-serif; letter-spacing: -0.015em; }
-.card-shadow { box-shadow: 0 4px 16px rgba(33, 37, 41, 0.06); }
-.card-shadow-lg { box-shadow: 0 12px 28px rgba(33, 37, 41, 0.12); }
+.font-display { font-family: var(--font-jakarta), sans-serif; font-weight: 800; letter-spacing: -0.015em; }
+.card-shadow { box-shadow: 0 4px 16px rgba(32, 28, 24, 0.05); }
+.card-shadow-lg { box-shadow: 0 14px 30px rgba(32, 28, 24, 0.1); }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+.img-fallback { background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 55%, #f3ede6) 0%, #f3ede6 100%); }
+.section-anchor { scroll-margin-top: 6.5rem; }
 
 /* Brze, snažne tranzicije za korake (modal, košarica, checkout) */
 @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
