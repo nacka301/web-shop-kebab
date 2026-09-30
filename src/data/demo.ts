@@ -46,6 +46,9 @@ export const menu: MenuItem[] = [
   { id: "hot-dog", name: "Hot Dog", description: "Pecivo, grill kobasica, umak po izboru", price: 2, category: "Ostalo", available: true, emoji: "🌭", image: "/images/hot-dog.jpg", sauceOptions: smashSauces, extraOptions: smashExtras },
   { id: "waffle-fries", name: "Waffle Fries", description: "Domaći waffle fries krumpirići", price: 2.5, category: "Prilozi", available: true, emoji: "🧇", image: "/images/waffle-fries.jpg" },
   { id: "pommes-frites", name: "Pommes Frites", description: "Klasični hrskavi pomfrit", price: 2, category: "Prilozi", available: true, emoji: "🍟", image: "/images/fries.jpg" },
+  { id: "cola", name: "Coca-Cola", description: "Ohlađeno gazirano piće", price: 2, category: "Piće", available: true, emoji: "🥤", image: "/images/cola.jpg" },
+  { id: "voda", name: "Voda 0,5 l", description: "Negazirana izvorska voda", price: 1.5, category: "Piće", available: true, emoji: "💧", image: "/images/voda.jpg" },
+  { id: "sok", name: "Sok", description: "Prirodni voćni sok", price: 2, category: "Piće", available: true, emoji: "🧃", image: "/images/sok.jpg" },
 ];
 
 export type OrderStatus = "nova" | "u_pripremi" | "spremna" | "preuzeta";
