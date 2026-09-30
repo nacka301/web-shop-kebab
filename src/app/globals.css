@@ -32,3 +32,21 @@ button, input, textarea, select { font: inherit; }
 .card-shadow-lg { box-shadow: 0 12px 28px rgba(33, 37, 41, 0.12); }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Brze, snažne tranzicije za korake (modal, košarica, checkout) */
+@keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes dialog-pop { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes step-in-right { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes step-in-left { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: translateX(0); } }
+
+.anim-backdrop { animation: backdrop-in .16s ease-out; }
+.anim-sheet { animation: sheet-up .26s cubic-bezier(.16,1,.3,1); }
+.anim-step-right { animation: step-in-right .2s cubic-bezier(.16,1,.3,1); }
+.anim-step-left { animation: step-in-left .2s cubic-bezier(.16,1,.3,1); }
+@media (min-width: 640px) {
+  .anim-sheet { animation: dialog-pop .2s cubic-bezier(.16,1,.3,1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-backdrop, .anim-sheet, .anim-step-right, .anim-step-left { animation: none; }
+}

@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { menu, shop, type MenuItem } from "@/data/demo";
 
 type CartItem = MenuItem & { quantity: number; sauces: string[]; extras: string[]; size: string | null; unitPrice: number };
 type OrderType = "pickup" | "delivery";
 type Payment = "cash" | "card";
+// Svaki "korak" (modal artikla, košarica, checkout, potvrda) je jedan unos u browser historiji,
+// tako da tipka/gesta "natrag" zatvara samo taj korak umjesto da izađe iz cijele aplikacije.
+type View = "menu" | "item" | "cart" | "checkout" | "confirmed";
+const viewDepth: Record<View, number> = { menu: 0, item: 1, cart: 1, checkout: 2, confirmed: 3 };
 
 const foodCategories = ["Burgeri", "Gablec", "Ostalo"];
 const minDelivery = 15;
@@ -50,6 +54,8 @@ export default function ShopPage() {
   const [timeMode, setTimeMode] = useState<"asap" | "scheduled">("asap");
   const [scheduledTime, setScheduledTime] = useState("");
   const [customer, setCustomer] = useState({ name: "", phone: "", address: "", note: "" });
+  const currentViewRef = useRef<View>("menu");
+  const [stepDir, setStepDir] = useState<"forward" | "back">("forward");
 
   const categories = ["Sve", ...Array.from(new Set(menu.map((item) => item.category)))];
   const visible = menu.filter((item) => item.available && (category === "Sve" || item.category === category));
@@ -69,12 +75,19 @@ export default function ShopPage() {
   const asapLabel = isDelivery ? "≈ 30 min" : "≈ 15 min";
   const pickupSummary = timeMode === "scheduled" && scheduledTime ? `Zakazano za ${scheduledTime}` : `Što prije · ${asapLabel}`;
 
+  // Koristimo URL hash (#item, #cart, ...) s praznim state-om umjesto vlastitog state objekta —
+  // Next.js App Router interno upravlja history.state, pa bi vlastiti objekt tu izazvao pun reload.
+  const pushView = (view: View) => {
+    currentViewRef.current = view;
+    window.history.pushState(null, "", `#${view}`);
+  };
   const openCustomization = (item: MenuItem) => {
     setSelectedItem(item);
     setSelectedSauce(null);
     setSelectedExtras([]);
     setSelectedSize(item.sizes?.[0]?.label ?? null);
     setConfigQty(1);
+    pushView("item");
   };
   const toggleChoice = (choice: string, selected: string[], setSelected: (value: string[]) => void) => {
     setSelected(selected.includes(choice) ? selected.filter((item) => item !== choice) : [...selected, choice]);
@@ -82,7 +95,7 @@ export default function ShopPage() {
   const addConfigured = () => {
     if (!selectedItem) return;
     setCart((current) => [...current, { ...selectedItem, id: `${selectedItem.id}-${Date.now()}`, quantity: configQty, sauces: selectedSauce ? [selectedSauce] : [], extras: selectedExtras, size: selectedSize, unitPrice: unitConfigured }]);
-    setSelectedItem(null);
+    window.history.back();
   };
   const changeQuantity = (id: string, amount: number) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + amount > 0 ? [{ ...item, quantity: item.quantity + amount }] : []) : [item]));
   const submitOrder = (event: React.FormEvent) => {
@@ -91,6 +104,7 @@ export default function ShopPage() {
     // Demo: narudžba se ne šalje niti sprema — samo prikazujemo ekran potvrde.
     setOrderNo(`#${Math.floor(1000 + Math.random() * 9000)}`);
     setConfirmed(true);
+    pushView("confirmed");
   };
   const resetOrder = () => {
     setCart([]);
@@ -103,7 +117,52 @@ export default function ShopPage() {
     setScheduledTime("");
     setCustomer({ name: "", phone: "", address: "", note: "" });
   };
-  const closeSheet = () => (confirmed ? resetOrder() : setShowCart(false));
+  const startNewOrder = () => {
+    resetOrder();
+    currentViewRef.current = "menu";
+    window.history.go(-viewDepth.confirmed);
+  };
+  const closeSheet = () => {
+    const depth = confirmed ? viewDepth.confirmed : checkout ? viewDepth.checkout : viewDepth.cart;
+    window.history.go(-depth);
+  };
+
+  // Prati back tipku/gestu preglednika: svaki korak (item modal, košarica, checkout, potvrda)
+  // je zaseban unos u historiji, pa "natrag" zatvara samo taj korak, ne cijelu aplikaciju.
+  useEffect(() => {
+    // Očisti eventualni hash iz deep linka bez dodavanja novog unosa u historiju; ne diramo
+    // history.state (Next.js ga sam postavlja) — mijenjamo samo URL.
+    if (window.location.hash) {
+      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+    }
+    const onPopState = () => {
+      const newView = (window.location.hash.replace("#", "") || "menu") as View;
+      const cameFromConfirmed = currentViewRef.current === "confirmed";
+      currentViewRef.current = newView;
+      if (cameFromConfirmed) {
+        // Narudžba je već poslana — nema smisla vraćati se u formu, kreni ispočetka
+        // i počisti preostale unose (cart/checkout) da idući "natrag" ne otvori praznu košaricu.
+        resetOrder();
+        const remaining = viewDepth[newView];
+        currentViewRef.current = "menu";
+        if (remaining > 0) window.history.go(-remaining);
+        return;
+      }
+      if (newView === "cart") {
+        setStepDir("back");
+        setCheckout(false);
+      } else if (newView === "checkout") {
+        setCheckout(true);
+        setShowCart(true);
+      } else {
+        setSelectedItem(null);
+        setShowCart(false);
+        setCheckout(false);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const orderTypeSelector = <div className="grid grid-cols-2 gap-2.5">{orderTypeOptions.map((option) => {
     const active = orderType === option.key;
@@ -159,20 +218,20 @@ export default function ShopPage() {
       </article>)}
     </section>
 
-    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => setShowCart(true)} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--brand)] px-5 py-4 font-bold text-white shadow-xl shadow-[var(--brand)]/30 safe-bottom active:scale-[0.98]">
+    {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => { setShowCart(true); pushView("cart"); }} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--brand)] px-5 py-4 font-bold text-white shadow-xl shadow-[var(--brand)]/30 safe-bottom active:scale-[0.98]">
       <span>{totalItems} {totalItems === 1 ? "stavka" : "stavke"}</span>
       <span>Košarica · {money(subtotal)}</span>
     </button>}
 
-    {selectedItem && <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center sm:p-6" onClick={() => setSelectedItem(null)}>
-      <div onClick={(event) => event.stopPropagation()} className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-[var(--background)] sm:rounded-3xl sm:shadow-2xl">
+    {selectedItem && <div className="anim-backdrop fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center sm:p-6" onClick={() => window.history.back()}>
+      <div onClick={(event) => event.stopPropagation()} className="anim-sheet flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-[var(--background)] sm:rounded-3xl sm:shadow-2xl">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="relative">
             {selectedItem.image
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={selectedItem.image} alt={selectedItem.name} className="h-40 w-full object-cover" />
               : <div className="flex h-40 w-full items-center justify-center bg-[#f3ede6] text-6xl">{selectedItem.emoji}</div>}
-            <button onClick={() => setSelectedItem(null)} aria-label="Zatvori" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-xl text-[var(--foreground)] shadow-md backdrop-blur">×</button>
+            <button onClick={() => window.history.back()} aria-label="Zatvori" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-xl text-[var(--foreground)] shadow-md backdrop-blur">×</button>
           </div>
 
           <div className="p-5">
@@ -220,9 +279,9 @@ export default function ShopPage() {
       </div>
     </div>}
 
-    {showCart && <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 sm:items-center sm:p-6" onClick={closeSheet}>
-      <div onClick={(event) => event.stopPropagation()} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5 safe-bottom sm:rounded-3xl sm:shadow-2xl">
-        {confirmed ? <div className="py-4 text-center">
+    {showCart && <div className="anim-backdrop fixed inset-0 z-30 flex items-end justify-center bg-black/40 sm:items-center sm:p-6" onClick={closeSheet}>
+      <div onClick={(event) => event.stopPropagation()} className="anim-sheet max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-[var(--background)] p-5 safe-bottom sm:rounded-3xl sm:shadow-2xl">
+        {confirmed ? <div key="confirmed" className="anim-step-right py-4 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">✓</div>
           <h2 className="text-2xl font-black">Hvala na narudžbi!</h2>
           <p className="mx-auto mt-2 max-w-xs text-sm text-[var(--muted)]">Narudžba <strong className="text-black">{orderNo}</strong> poslana je u {shop.name}. Radnja će uskoro potvrditi narudžbu.</p>
@@ -236,11 +295,11 @@ export default function ShopPage() {
             {isDelivery && <div className="flex justify-between border-t border-black/5 pt-2 text-[var(--muted)]"><span>Dostava</span><span>Besplatno</span></div>}
             <div className="flex justify-between border-t border-black/5 pt-2 text-base font-black"><span>Ukupno</span><span>{money(total)}</span></div>
           </div>
-          <button onClick={resetOrder} className="mt-5 w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Nova narudžba</button>
-        </div> : <>
+          <button onClick={startNewOrder} className="mt-5 w-full rounded-xl bg-[var(--brand)] py-4 font-bold text-white transition active:scale-[0.98]">Nova narudžba</button>
+        </div> : <div key={checkout ? "checkout" : "cart"} className={stepDir === "forward" ? "anim-step-right" : "anim-step-left"}>
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-2xl font-black">{checkout ? "Podaci za narudžbu" : "Tvoja košarica"}</h2>
-            <button onClick={() => setShowCart(false)} className="text-2xl text-[var(--muted)]" aria-label="Zatvori">×</button>
+            <button onClick={closeSheet} className="text-2xl text-[var(--muted)]" aria-label="Zatvori">×</button>
           </div>
           {!checkout ? <>
             <div className="mb-4">{orderTypeSelector}{deliveryNote}</div>
@@ -263,7 +322,7 @@ export default function ShopPage() {
               {isDelivery && <div className="mb-1.5 flex justify-between text-sm text-[var(--muted)]"><span>Dostava</span><span className="font-semibold text-green-700">Besplatno</span></div>}
               <div className="flex items-baseline justify-between"><span className="text-lg font-bold">Ukupno</span><span className="text-2xl font-extrabold">{money(total)}</span></div>
             </div>
-            <button onClick={() => setCheckout(true)} disabled={deliveryBelowMin} className={`mt-4 w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : "Nastavi na podatke"}</button>
+            <button onClick={() => { setStepDir("forward"); setCheckout(true); pushView("checkout"); }} disabled={deliveryBelowMin} className={`mt-4 w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : "Nastavi na podatke"}</button>
           </> : <form onSubmit={submitOrder} className="space-y-3">
             <div>{orderTypeSelector}{deliveryNote}</div>
             <p className="text-sm text-[var(--muted)]">Unesi podatke za pripremu narudžbe. Polja označena <span className="font-bold text-red-500">*</span> su obavezna.</p>
@@ -296,9 +355,9 @@ export default function ShopPage() {
             <label className="block text-sm font-bold">Napomena <span className="font-normal text-[var(--muted)]">(opcionalno)</span><textarea value={customer.note} onChange={(event) => setCustomer({ ...customer, note: event.target.value })} rows={4} placeholder="Npr. bez luka, dostava na stražnji ulaz…" className="mt-1 h-28 w-full resize-none rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
             <div className="rounded-xl bg-[#fff0e8] p-3 text-sm text-[var(--brand-dark)]">{payment === "card" ? <>Plaćate <strong>online karticom</strong> pri narudžbi.</> : <>Plaćate <strong>gotovinom {handoverLabel}</strong>.</>}{isDelivery ? " Besplatna dostava." : ""}</div>
             <button disabled={deliveryBelowMin} className={`w-full rounded-xl py-4 font-bold text-white transition ${deliveryBelowMin ? "cursor-not-allowed bg-black/20" : "bg-[var(--brand)] active:scale-[0.98]"}`}>{deliveryBelowMin ? `Nedostaje ${money(deliveryRemaining)} za dostavu` : `Potvrdi narudžbu · ${money(total)}`}</button>
-            <button type="button" onClick={() => setCheckout(false)} className="w-full rounded-xl border border-black/10 bg-white py-3.5 text-sm font-bold text-[var(--muted)] transition hover:bg-black/[.03] active:scale-[0.98]">← Natrag na košaricu</button>
+            <button type="button" onClick={() => window.history.back()} className="w-full rounded-xl border border-black/10 bg-white py-3.5 text-sm font-bold text-[var(--muted)] transition hover:bg-black/[.03] active:scale-[0.98]">← Natrag na košaricu</button>
           </form>}
-        </>}
+        </div>}
       </div>
     </div>}
   </main>;
