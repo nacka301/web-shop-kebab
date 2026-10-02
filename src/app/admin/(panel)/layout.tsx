@@ -23,12 +23,14 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-20 print:hidden border-b border-[var(--border)] bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1240px] items-center gap-1 px-3 sm:px-6">
           <span className="mr-2 max-w-[40%] truncate text-sm font-extrabold">{context.restaurant.name}</span>
           <nav className="flex flex-1 gap-1">
             <Link href="/admin" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Narudžbe</Link>
             <Link href="/admin/jelovnik" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Jelovnik</Link>
+            <Link href="/admin/qr" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">QR</Link>
+            <Link href="/admin/statistika" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Statistika</Link>
           </nav>
           <LogoutButton />
         </div>

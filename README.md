@@ -54,6 +54,14 @@ Vlasnik se prijavljuje e-mailom i lozinkom (Supabase Auth, bez javne registracij
 - Račun vlasnika: [`supabase/add-staff.sql`](./supabase/add-staff.sql).
 - Uživo preko Realtimea na tablici `orders`, uz rezervni polling svakih 10 s.
 
+## QR, linkovi i statistika
+
+- `/admin/qr`: javni link s gumbom "Kopiraj", QR kod (SVG i PNG), gotovi linkovi s izvorom (`?src=ig|fb|gmaps|wa|qr`) i upute gdje ih zalijepiti.
+- `/admin/qr/plakat`: A4 plakat i naljepnice (6 na A4) za ispis.
+- Posjeti se broje preko `POST /api/view` (jedan zbroj po radnji, danu i izvoru; bez IP-a, user-agenta i kolačića; roboti i prijavljeni vlasnik se ne broje). `src` se prihvaća samo iz popisa, ostalo je `other`.
+- `/admin/statistika`: posjeti, narudžbe, konverzija, razrada po izvoru, narudžbe po danima i top 5 artikala za 7 i 30 dana.
+- Pregled linka (Open Graph/Twitter), favicon i `theme-color` dolaze iz podataka radnje.
+
 ## Testovi
 
 ```bash

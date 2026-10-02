@@ -7,6 +7,7 @@ export type AdminRestaurant = {
   id: string;
   slug: string;
   name: string;
+  accentColor: string;
   acceptingOrders: boolean;
   tjedno: WeekHours;
 };
@@ -25,12 +26,12 @@ export const getStaffContext = cache(async (): Promise<StaffContext> => {
 
   const { data } = await supabase
     .from("restaurant_staff")
-    .select("restaurant:restaurants(id, slug, name, accepting_orders, opening_hours)")
+    .select("restaurant:restaurants(id, slug, name, accent_color, accepting_orders, opening_hours)")
     .eq("user_id", auth.user.id)
     .maybeSingle();
 
   const row = data as unknown as {
-    restaurant: { id: string; slug: string; name: string; accepting_orders: boolean; opening_hours: unknown } | null;
+    restaurant: { id: string; slug: string; name: string; accent_color: string; accepting_orders: boolean; opening_hours: unknown } | null;
   } | null;
   if (!row?.restaurant) return { status: "no-access", email: auth.user.email ?? null };
 
@@ -41,6 +42,7 @@ export const getStaffContext = cache(async (): Promise<StaffContext> => {
       id: row.restaurant.id,
       slug: row.restaurant.slug,
       name: row.restaurant.name,
+      accentColor: row.restaurant.accent_color,
       acceptingOrders: row.restaurant.accepting_orders,
       tjedno: parseOpeningHours(row.restaurant.opening_hours),
     },

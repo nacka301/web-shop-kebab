@@ -1,5 +1,6 @@
 import { MAX_AHEAD_HOURS, isWithinWorkingHours } from "@/lib/hours";
 import type { WeekHours } from "@/lib/types";
+import { normalizeSource, type Source } from "@/lib/sources";
 import { normalizeCroatianPhone } from "@/lib/validation";
 import type { OrderRequest } from "./schema";
 import { priceCart, type PricedLine, type PricingItem } from "./pricing";
@@ -20,7 +21,7 @@ export type PreparedOrder = {
   pickupType: "asap" | "time";
   pickupTime: Date | null;
   note: string;
-  source: string | null;
+  source: Source | null;
   totalCents: number;
   lines: PricedLine[];
 };
@@ -81,7 +82,7 @@ export function prepareOrder(args: {
       pickupType: request.pickup_type,
       pickupTime,
       note: request.note,
-      source: request.src ? request.src : null,
+      source: normalizeSource(request.src),
       totalCents: priced.totalCents,
       lines: priced.lines,
     },

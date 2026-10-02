@@ -49,6 +49,12 @@ export function zagrebDayStart(date: Date): Date {
   return fromWall(Math.floor(wallMs(date) / DAY_MS) * DAY_MS);
 }
 
+// Datum po zagrebačkom vremenu kao "2026-10-02" (ključ za dnevne zbrojeve).
+export function zagrebDateKey(date: Date): string {
+  const wall = new Date(wallMs(date));
+  return wall.toISOString().slice(0, 10);
+}
+
 export function formatTime(date: Date): string {
   const wall = new Date(wallMs(date));
   return `${String(wall.getUTCHours()).padStart(2, "0")}:${String(wall.getUTCMinutes()).padStart(2, "0")}`;

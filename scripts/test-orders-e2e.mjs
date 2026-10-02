@@ -27,11 +27,11 @@ const body = (extra = {}) => ({
   slug: "test-radnja",
   // LAŽNE cijene u zahtjevu — server ih mora ignorirati.
   items: [{ item_id: IDS.burger, qty: 2, option_ids: [IDS.ljuti, IDS.sir], price_cents: 1, unit_price_cents: 1 }],
-  name: "Ivan Horvat",
+  name: "E2E Test",
   phone: "091 234 5678",
   pickup_type: "asap",
   total_cents: 1,
-  src: "e2e",
+  src: "qr",
   ...extra,
 });
 const post = (payload) =>
@@ -52,7 +52,7 @@ check("short_code je oblika A-482", /^[A-Z]-\d{3}$/.test(created.short_code ?? "
 const { data: row } = await service.from("orders").select("total_cents, source, customer_phone").eq("id", created.order_id).single();
 check(`server je izračunao ${expected} centi, ne lažnu 1`, row?.total_cents === expected, `u bazi: ${row?.total_cents}`);
 check("telefon je normaliziran na +385", row?.customer_phone === "+385912345678");
-check("src je spremljen", row?.source === "e2e");
+check("src je spremljen", row?.source === "qr");
 
 const { data: lines } = await service.from("order_items").select("name_snapshot, qty, unit_price_cents, line_total_cents").eq("order_id", created.order_id);
 check("stavke imaju snapshot imena i cijene", lines?.length === 1 && lines[0].name_snapshot === "Testni burger" && lines[0].unit_price_cents === expected / 2);
@@ -85,7 +85,7 @@ for (let i = 0; i < 5; i += 1) statuses.push((await post(body())).status);
 check("6. narudžba u 10 min je blokirana (429)", statuses.at(-1) === 429, statuses.join());
 
 // Čišćenje testnih narudžbi.
-await service.from("orders").delete().eq("source", "e2e");
+await service.from("orders").delete().eq("customer_name", "E2E Test");
 
 console.log(failed ? `\n${failed} provjera nije prošlo.` : "\nSve provjere prolaze.");
 process.exit(failed ? 1 : 0);
