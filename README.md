@@ -66,6 +66,10 @@ Vlasnik se prijavljuje e-mailom i lozinkom (Supabase Auth, bez javne registracij
 
 Ako radnja ima `owner_email` (Admin → Postavke) i na poslužitelju su postavljeni `RESEND_API_KEY` i `RESEND_FROM`, svaka nova narudžba stiže i na e-mail. Slanje je neblokirajuće (`after()`): ako Resend padne, narudžba se ipak sprema, a u log ide samo status greške. Demo radnje ne šalju ništa. `owner_email` nije javan: čita se samo preko funkcije `get_owner_email`.
 
+## Dodavanje nove radnje
+
+Nova radnja ide iz jedne JSON datoteke: `npm run onboard -- restaurants/<slug>.json` (sažetak i potvrda prije upisa, idempotentno, `--create-owner`, `--demo`). Upute korak po korak: [`restaurants/README.md`](./restaurants/README.md).
+
 ## Testovi
 
 ```bash

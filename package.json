@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test tests/*.test.ts",
-    "test:e2e": "node --env-file=.env.local scripts/test-orders-e2e.mjs"
+    "test:e2e": "node --env-file=.env.local scripts/test-orders-e2e.mjs",
+    "onboard": "tsx --env-file-if-exists=.env.local scripts/onboard.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
