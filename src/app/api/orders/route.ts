@@ -1,6 +1,8 @@
 import { createHmac } from "node:crypto";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { loadPricingItems, loadRestaurantForOrder } from "@/lib/data/restaurants";
+import { buildNewOrderEmail } from "@/lib/email/new-order";
+import { sendEmail } from "@/lib/email/resend";
 import { RATE_LIMIT_ORDERS, RATE_LIMIT_WINDOW_MIN } from "@/lib/orders/limits";
 import { prepareOrder } from "@/lib/orders/prepare";
 import { orderRequestSchema } from "@/lib/orders/schema";
@@ -79,6 +81,32 @@ export async function POST(request: Request) {
 
   const created = Array.isArray(data) ? data[0] : data;
   if (rpcError || !created) return error(500, "Slanje narudžbe nije uspjelo. Pokušaj ponovno.");
+
+  // Obavijest vlasniku e-mailom: NEBLOKIRAJUĆE. after() se izvršava tek kad je odgovor već otišao, a svaka
+  // greška (Resend pao, loša adresa, nema postavki) se samo zabilježi — narudžba je već spremljena.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
+  const adminUrl = `${siteUrl.replace(/\/+$/, "")}/admin`;
+  after(async () => {
+    try {
+      const { data: owner } = await supabase.from("restaurants").select("name, owner_email").eq("id", order.restaurantId).maybeSingle();
+      if (!owner?.owner_email) return;
+      const email = buildNewOrderEmail({
+        restaurantName: owner.name,
+        shortCode: created.short_code,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        pickupType: order.pickupType,
+        pickupTime: order.pickupTime,
+        note: order.note,
+        totalCents: order.totalCents,
+        lines: order.lines,
+        adminUrl,
+      });
+      await sendEmail({ to: owner.owner_email, ...email });
+    } catch {
+      console.error("[mail] obavijest o narudžbi nije poslana");
+    }
+  });
 
   return NextResponse.json({ order_id: created.order_id, short_code: created.short_code }, { status: 201 });
 }

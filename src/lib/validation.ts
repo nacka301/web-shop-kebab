@@ -5,3 +5,9 @@ export function normalizeCroatianPhone(raw: string): string | null {
   if (digits.startsWith("0")) digits = `+385${digits.slice(1)}`;
   return /^\+3859\d{7,8}$/.test(digits) ? digits : null;
 }
+
+// Jednostavna provjera oblika e-maila (isti oblik kao CHECK u bazi); prava provjera je tek slanje.
+export function isValidEmail(raw: string): boolean {
+  const value = raw.trim();
+  return value.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
+}

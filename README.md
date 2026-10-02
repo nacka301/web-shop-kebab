@@ -62,6 +62,10 @@ Vlasnik se prijavljuje e-mailom i lozinkom (Supabase Auth, bez javne registracij
 - `/admin/statistika`: posjeti, narudžbe, konverzija, razrada po izvoru, narudžbe po danima i top 5 artikala za 7 i 30 dana.
 - Pregled linka (Open Graph/Twitter), favicon i `theme-color` dolaze iz podataka radnje.
 
+## Obavijest e-mailom
+
+Ako radnja ima `owner_email` (Admin → Postavke) i na poslužitelju su postavljeni `RESEND_API_KEY` i `RESEND_FROM`, svaka nova narudžba stiže i na e-mail. Slanje je neblokirajuće (`after()`): ako Resend padne, narudžba se ipak sprema, a u log ide samo status greške. Demo radnje ne šalju ništa. `owner_email` nije javan: čita se samo preko funkcije `get_owner_email`.
+
 ## Testovi
 
 ```bash

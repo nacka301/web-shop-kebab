@@ -31,6 +31,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/admin/jelovnik" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Jelovnik</Link>
             <Link href="/admin/qr" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">QR</Link>
             <Link href="/admin/statistika" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Statistika</Link>
+            <Link href="/admin/postavke" className="flex min-h-12 items-center rounded-xl px-3 text-sm font-bold hover:bg-black/[0.05]">Postavke</Link>
           </nav>
           <LogoutButton />
         </div>
