@@ -44,6 +44,11 @@ function parseTimeToMinutes(time: string) {
   return h * 60 + m;
 }
 
+// Početak dana (00:00) po zagrebačkom vremenu — za dnevni sažetak.
+export function zagrebDayStart(date: Date): Date {
+  return fromWall(Math.floor(wallMs(date) / DAY_MS) * DAY_MS);
+}
+
 export function formatTime(date: Date): string {
   const wall = new Date(wallMs(date));
   return `${String(wall.getUTCHours()).padStart(2, "0")}:${String(wall.getUTCMinutes()).padStart(2, "0")}`;

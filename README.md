@@ -46,10 +46,18 @@ Radnje, jelovnik i narudžbe žive u Supabaseu (sheme u [`supabase/migrations`](
 - Radno vrijeme je `opening_hours` po danu (`mon`…`sun`, lista `[od, do]`); `do` manji ili jednak `od` znači rad preko ponoći (petak `09:00`–`02:00` = u subotu u 01:00 još otvoreno). Sve se računa u zoni Europe/Zagreb, neovisno o zoni servera.
 - Testna radnja koja nije demo: [`supabase/test-restaurant.sql`](./supabase/test-restaurant.sql).
 
+## Admin za vlasnike (`/admin`)
+
+Vlasnik se prijavljuje e-mailom i lozinkom (Supabase Auth, bez javne registracije) i na mobitelu vidi narudžbe uživo: zvuk koji se ponavlja dok ne potvrdi ili odbije, ekran koji ne zaspi, pauza naručivanja, uređivanje jelovnika (cijena, naziv, opis, "Nema na stanju", novi artikl). Može se dodati na početni zaslon.
+
+- Pristup štiti RLS u bazi (anon ključ + sesija, nikad service role u pregledniku): vlasnik radnje A ne može čitati ni mijenjati ništa u radnji B. Test: `tests/rls.test.ts`.
+- Račun vlasnika: [`supabase/add-staff.sql`](./supabase/add-staff.sql).
+- Uživo preko Realtimea na tablici `orders`, uz rezervni polling svakih 10 s.
+
 ## Testovi
 
 ```bash
-npm test          # jedinični testovi: cijene, validacija, radno vrijeme (bez baze)
+npm test          # cijene, validacija, radno vrijeme + SQL i RLS na Postgresu u memoriji (bez Dockera)
 npm run test:e2e  # protiv prave baze i pokrenutog `npm run dev` (treba .env.local i test-radnju)
 ```
 
