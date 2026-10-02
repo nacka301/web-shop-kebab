@@ -9,7 +9,12 @@ npm install
 npm run dev
 ```
 
-Otvori [http://localhost:3000/grill-box](http://localhost:3000/grill-box) (početna `/` automatski vodi na meni).
+Demo rute:
+
+- [/grill-box](http://localhost:3000/grill-box) — SMASH, Vinkovci (ista radnja je i na `/smash`)
+- [/emmito](http://localhost:3000/emmito) — Emmito, kebab i brza hrana, Daruvar
+
+Početna `/` preusmjerava na `NEXT_PUBLIC_DEFAULT_SLUG`.
 
 ## Slike jela — kako dodati svoje
 
@@ -31,7 +36,11 @@ To je sve — meni odmah pokazuje tvoju sliku. Ako slika nedostaje, prikazuje se
 - checkout s imenom, telefonom, adresom, načinom plaćanja i vremenom (odmah ili zakazano)
 - potvrda narudžbe s brojem narudžbe
 
-Ovo je samo customer-facing demo — narudžbe se ne spremaju. Demo podaci (radnja, meni) su u [`src/data/demo.ts`](./src/data/demo.ts).
+Ovo je samo customer-facing demo — narudžbe se nigdje ne šalju.
+
+Podaci radnji (radnja, radno vrijeme, jelovnik, opcije) su hardkodirani, jedna datoteka po radnji u [`src/data/shops/`](./src/data/shops). Nova radnja = nova datoteka + jedan redak u [`src/data/shops/index.ts`](./src/data/shops/index.ts).
+
+Radno vrijeme se zadaje po danu u tjednu (`tjedno`, indeks 0 = nedjelja). Ako je `zatvara` manji ili jednak `otvara`, radnja se zatvara poslije ponoći — npr. petak `09:00`–`02:00` znači da je u subotu u 01:00 još otvorena.
 
 Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/grill-box`.
 
