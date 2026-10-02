@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bike, Clock, Flame, Minus, MapPin, Plus, Search, ShieldCheck, ShoppingBag, Store, Wallet, X } from "lucide-react";
 import { formatTime, isOpenNow, openStatusLabel, pickupSlots } from "@/lib/hours";
 import type { MenuItemDTO, OptionGroupDTO, ShopDTO } from "@/lib/types";
-import { submitOrder as submitOrderAction } from "./actions";
+import { submitDemoOrder } from "./actions";
 
 type CartLineOption = { groupId: string; groupName: string; optionId: string; optionName: string; doplata: number };
 type CartItem = {
@@ -45,10 +45,12 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
   const [activeSection, setActiveSection] = useState("");
   const [openNow, setOpenNow] = useState<boolean | null>(null);
   const [statusLabel, setStatusLabel] = useState<string | null>(null);
-  const [slots, setSlots] = useState<string[]>([]);
+  const [slots, setSlots] = useState<{ iso: string; label: string }[]>([]);
   const [orderType, setOrderType] = useState<OrderType>("pickup");
   const [timeMode, setTimeMode] = useState<"asap" | "scheduled">("asap");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const [customer, setCustomer] = useState({ name: "", phone: "", address: "", note: "" });
   const currentViewRef = useRef<View>("menu");
   const [stepDir, setStepDir] = useState<"forward" | "back">("forward");
@@ -116,6 +118,7 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
   const toggleMultiple = (group: OptionGroupDTO, optionId: string) => {
     setSelectedOptions((prev) => {
       const current = prev[group.id] ?? [];
+      if (!current.includes(optionId) && group.maxSelect !== null && current.length >= group.maxSelect) return prev;
       const next = current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId];
       return { ...prev, [group.id]: next };
     });
@@ -160,25 +163,53 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
     if (orderingDisabled || isPending) return;
     setSubmitError(null);
     startTransition(async () => {
-      const result = await submitOrderAction({
-        shopId: shop.id,
-        vrsta: isDelivery ? "dostava" : "preuzimanje",
-        adresaDostave: isDelivery ? customer.address : null,
-        ime: customer.name,
-        telefon: customer.phone,
-        napomena: customer.note,
-        odmah: timeMode === "asap",
-        scheduledTime: timeMode === "scheduled" ? scheduledTime : null,
-        cart: cart.map((item) => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          selectedOptions: item.selectedOptions.map((o) => ({ groupId: o.groupId, optionId: o.optionId })),
-        })),
-      });
-      if (result.ok) {
-        router.push(`/${shop.slug}/narudzba/${result.publicToken}`);
-      } else {
-        setSubmitError(result.error);
+      const scheduledIso = timeMode === "scheduled" ? scheduledTime : null;
+      if (shop.isDemo) {
+        // Demo radnje: lažna potvrda, ništa se ne sprema.
+        const result = await submitDemoOrder({
+          slug: shop.slug,
+          vrsta: isDelivery ? "dostava" : "preuzimanje",
+          adresaDostave: isDelivery ? customer.address : null,
+          ime: customer.name,
+          telefon: customer.phone,
+          napomena: customer.note,
+          odmah: timeMode === "asap",
+          scheduledTime: scheduledIso,
+          cart: cart.map((item) => ({
+            itemId: item.menuItemId,
+            quantity: item.quantity,
+            optionIds: item.selectedOptions.map((o) => o.optionId),
+          })),
+        });
+        if (result.ok) router.push(`/${shop.slug}/narudzba/${result.orderId}`);
+        else setSubmitError(result.error);
+        return;
+      }
+      try {
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug: shop.slug,
+            items: cart.map((item) => ({
+              item_id: item.menuItemId,
+              qty: item.quantity,
+              option_ids: item.selectedOptions.map((o) => o.optionId),
+            })),
+            name: customer.name,
+            phone: customer.phone,
+            pickup_type: timeMode === "asap" ? "asap" : "time",
+            pickup_time: scheduledIso,
+            note: customer.note,
+            src: new URLSearchParams(window.location.search).get("src")?.slice(0, 40) || null,
+            website: honeypot,
+          }),
+        });
+        const data = (await response.json().catch(() => ({}))) as { order_id?: string; error?: string };
+        if (response.ok && data.order_id) router.push(`/${shop.slug}/narudzba/${data.order_id}`);
+        else setSubmitError(data.error ?? "Slanje narudžbe nije uspjelo. Pokušaj ponovno.");
+      } catch {
+        setSubmitError("Nema veze s poslužiteljem. Pokušaj ponovno.");
       }
     });
   };
@@ -194,12 +225,22 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
     const refresh = () => {
       setOpenNow(isOpenNow(shop));
       setStatusLabel(openStatusLabel(shop));
-      setSlots(pickupSlots(shop).map(formatTime));
+      setSlots(pickupSlots(shop).map((slot) => ({ iso: slot.toISOString(), label: formatTime(slot) })));
     };
     refresh();
     const id = setInterval(refresh, 60_000);
     return () => clearInterval(id);
   }, [shop]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(`lastOrder:${shop.slug}`) ?? "null") as { id: string; at: number } | null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage postoji tek u pregledniku, nakon mounta
+      if (saved && Date.now() - saved.at < 12 * 3_600_000) setLastOrderId(saved.id);
+    } catch {
+      // localStorage može biti blokiran — poveznica se tada jednostavno ne prikaže.
+    }
+  }, [shop.slug]);
 
   // Scrollspy: prati koja je sekcija jelovnika trenutno na vrhu viewporta i ističe
   // odgovarajuću kategoriju u lijevoj traci / chipovima.
@@ -238,7 +279,7 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  const orderTypeSelector = <div className="grid grid-cols-2 gap-2.5">{orderTypeOptions.map((option) => {
+  const orderTypeSelector = !shop.isDemo ? null : <div className="grid grid-cols-2 gap-2.5">{orderTypeOptions.map((option) => {
     const active = orderType === option.key;
     return <button type="button" key={option.key} onClick={() => setOrderType(option.key)} className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${active ? "border-[var(--brand)] bg-[#fff0e8]" : "border-black/[0.08] bg-black/[0.02] hover:bg-black/[0.04]"}`}>
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${active ? "bg-[var(--brand)] text-white" : "bg-white text-[var(--foreground)] shadow-sm"}`}><option.Icon className="h-5 w-5" /></span>
@@ -275,16 +316,17 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
         <p className="mt-2.5 text-center text-[11px] text-[var(--muted)]">Plaćaš pri preuzimanju · Radnja potvrđuje narudžbu</p>
       </>;
 
-  return <main className="min-h-screen bg-[var(--background)] pb-28 md:pb-0">
+  return <main style={{ "--brand": shop.accentColor, "--brand-dark": `color-mix(in srgb, ${shop.accentColor} 80%, black)` } as React.CSSProperties} className="min-h-screen bg-[var(--background)] pb-28 md:pb-0">
     <header className="relative h-[220px] overflow-hidden lg:h-[300px]">
       {shop.heroSlika
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={shop.heroSlika} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
         : <div aria-hidden className="img-fallback absolute inset-0 h-full w-full" />}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/25" />
+      {shop.isDemo && <span className="absolute right-4 top-4 z-10 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white backdrop-blur-md">Demo</span>}
       <div className="relative mx-auto flex h-full max-w-[1240px] flex-col justify-end px-5 pb-6 sm:px-8 lg:px-10">
         <div className="flex items-center gap-3.5">
-          <ShopLogo logo={shop.logo} />
+          <ShopLogo logo={shop.logo} logoUrl={shop.logoUrl} />
           <div className="min-w-0 text-white">
             <h1 className="font-display truncate text-2xl leading-tight sm:text-3xl lg:text-4xl">{shop.naziv}</h1>
             <p className="mt-1 truncate text-[13px] font-medium text-white/80 sm:text-sm">{shop.adresa}</p>
@@ -294,6 +336,14 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
         {heroChips}
       </div>
     </header>
+
+    {lastOrderId && (
+      <div className="mx-auto max-w-[1240px] px-5 pt-4 sm:px-8 lg:px-10">
+        <a href={`/${shop.slug}/narudzba/${lastOrderId}`} className="block rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-center text-sm font-semibold text-[var(--brand-dark)] card-shadow">
+          Tvoja zadnja narudžba →
+        </a>
+      </div>
+    )}
 
     {!shop.acceptingOrders && (
       <div className="mx-auto max-w-[1240px] px-5 pt-4 sm:px-8 lg:px-10">
@@ -447,6 +497,7 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
             <div>{orderTypeSelector}{deliveryNote}</div>
             <p className="text-sm text-[var(--muted)]">Unesi podatke za pripremu narudžbe. Polja označena <span className="font-bold text-red-500">*</span> su obavezna.</p>
             {isDelivery && <label className="block text-sm font-bold">Adresa dostave <span className="text-red-500">*</span><input required value={customer.address} onChange={(event) => setCustomer({ ...customer, address: event.target.value })} placeholder="Ulica i kućni broj, kat/stan" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>}
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={honeypot} onChange={(event) => setHoneypot(event.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" />
             <label className="block text-sm font-bold">Ime i prezime <span className="text-red-500">*</span><input required pattern="^\s*\S+\s+\S+.*$" title="Upiši ime i prezime." value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="Npr. Ivan Horvat" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
             <label className="block text-sm font-bold">Broj mobitela <span className="text-red-500">*</span><input required type="tel" pattern="^(?:\+385|0)9[\s\d\-]{7,}$" title="Upiši ispravan broj mobitela, npr. 091 123 4567." value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="091 123 4567" className="mt-1 w-full rounded-xl border border-black/10 bg-white p-3 outline-none transition placeholder:text-black/30 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20" /></label>
             <div>
@@ -466,7 +517,7 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
               {timeMode === "scheduled" && (slots.length > 0
                 ? <select required value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} className="mt-2 w-full rounded-xl border border-black/10 bg-white p-3 text-black outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20">
                     <option value="" disabled>Odaberi termin…</option>
-                    {slots.map((slot) => <option key={slot} value={slot}>{slot}</option>)}
+                    {slots.map((slot) => <option key={slot.iso} value={slot.iso}>{slot.label}</option>)}
                   </select>
                 : <p className="mt-2 rounded-xl bg-black/[0.03] p-3 text-sm text-[var(--muted)]">Nema dostupnih termina — radnja je zatvorena.</p>)}
             </div>
@@ -495,9 +546,11 @@ function Checkbox({ active }: { active: boolean }) {
 
 // Logo je ili emoji (kvadratni okvir, kao dosad) ili kratak tekst poput "EMMITO",
 // koji treba širinu umjesto kvadrata.
-function ShopLogo({ logo }: { logo: string }) {
+function ShopLogo({ logo, logoUrl }: { logo: string; logoUrl: string | null }) {
   const isText = /[a-z0-9]/i.test(logo);
   const base = "flex h-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/70 bg-white/15 shadow-lg backdrop-blur-md lg:h-16";
+  // eslint-disable-next-line @next/next/no-img-element
+  if (logoUrl) return <img src={logoUrl} alt={logo} className={`${base} w-14 object-cover lg:w-16`} />;
   return isText
     ? <span className={`${base} px-3.5 font-display text-lg tracking-[0.12em] text-white lg:px-4 lg:text-xl`}>{logo}</span>
     : <span className={`${base} w-14 text-3xl lg:w-16`}>{logo}</span>;

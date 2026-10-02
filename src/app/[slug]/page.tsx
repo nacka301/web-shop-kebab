@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { fetchMenuByShopId, fetchShopBySlug } from "@/lib/data/shop";
+import { fetchMenuByShopId, fetchShopBySlug } from "@/lib/data/restaurants";
 import ShopPageClient from "./shop-page-client";
 
 export const dynamic = "force-dynamic";

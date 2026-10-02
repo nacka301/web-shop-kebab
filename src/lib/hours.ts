@@ -1,66 +1,100 @@
-import type { ShopDTO, WeekHours } from "@/lib/types";
+import type { WeekHours } from "@/lib/types";
 
-type ShopHours = Pick<ShopDTO, "tjedno">;
+// Svo radno vrijeme računa se u zoni radnje, neovisno o zoni servera (Vercel radi u UTC-u)
+// ili preglednika. Interno radimo sa "zidnim" vremenom: trenutak se pretvori u milisekunde
+// kao da je zidno vrijeme Zagreba UTC, pa je aritmetika po danima i satima trivijalna.
+export const SHOP_TIME_ZONE = "Europe/Zagreb";
+
+type ShopHours = { tjedno: WeekHours };
 export type OpenWindow = { start: Date; end: Date };
+type WallWindow = { start: number; end: number };
 
-const MINUTE_MS = 60_000;
+const MIN_MS = 60_000;
+const DAY_MS = 86_400_000;
 const SLOT_STEP_MIN = 15;
-// Koliko unaprijed najranije zakazati — pokriva vrijeme pripreme.
 const LEAD_MIN = 15;
+export const MAX_AHEAD_HOURS = 24;
+
+const partsFormat = new Intl.DateTimeFormat("en-GB", {
+  timeZone: SHOP_TIME_ZONE,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+function wallMs(date: Date): number {
+  const p: Record<string, number> = {};
+  for (const part of partsFormat.formatToParts(date)) {
+    if (part.type !== "literal") p[part.type] = Number(part.value);
+  }
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+}
+
+function fromWall(wall: number): Date {
+  const first = wall - (wallMs(new Date(wall)) - wall);
+  return new Date(wall - (wallMs(new Date(first)) - first));
+}
 
 function parseTimeToMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 }
 
-export function formatTime(date: Date) {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+export function formatTime(date: Date): string {
+  const wall = new Date(wallMs(date));
+  return `${String(wall.getUTCHours()).padStart(2, "0")}:${String(wall.getUTCMinutes()).padStart(2, "0")}`;
 }
 
-function startOfDay(ref: Date, offsetDays: number) {
-  const day = new Date(ref);
-  day.setHours(0, 0, 0, 0);
-  day.setDate(day.getDate() + offsetDays);
-  return day;
+function windowsStartingOnDay(week: WeekHours, dayStart: number): WallWindow[] {
+  const dayOfWeek = new Date(dayStart).getUTCDay();
+  return (week[dayOfWeek] ?? []).map(({ otvara, zatvara }) => {
+    const open = parseTimeToMinutes(otvara);
+    const close = parseTimeToMinutes(zatvara);
+    // zatvara <= otvara: radnja se zatvara poslije ponoći, pa kraj pada na sljedeći dan.
+    return { start: dayStart + open * MIN_MS, end: dayStart + (close <= open ? close + 1440 : close) * MIN_MS };
+  });
 }
 
-// Radni interval koji POČINJE na dan `ref + offsetDays`. Ako je `zatvara <= otvara`,
-// radnja se zatvara poslije ponoći, pa kraj pada na sljedeći dan (petak 09:00–02:00
-// znači da je u subotu u 01:00 još uvijek otvoren petkov interval).
-function windowStartingOn(tjedno: WeekHours, ref: Date, offsetDays: number): OpenWindow | null {
-  const day = startOfDay(ref, offsetDays);
-  const hours = tjedno[day.getDay()];
-  if (!hours) return null;
-
-  const otvaraMin = parseTimeToMinutes(hours.otvara);
-  const zatvaraMin = parseTimeToMinutes(hours.zatvara);
-  const start = new Date(day);
-  start.setMinutes(otvaraMin);
-  const end = new Date(day);
-  end.setMinutes(zatvaraMin + (zatvaraMin <= otvaraMin ? 24 * 60 : 0));
-  return { start, end };
-}
-
-// Interval unutar kojeg `when` pada — gleda i jučerašnji interval zbog zatvaranja poslije ponoći.
-export function activeWindow(shop: ShopHours, when: Date): OpenWindow | null {
+function activeWallWindow(week: WeekHours, wall: number): WallWindow | null {
+  const dayStart = Math.floor(wall / DAY_MS) * DAY_MS;
+  // Gledamo i jučerašnje intervale: petak 09:00–02:00 još vrijedi u subotu u 01:00.
   for (const offset of [0, -1]) {
-    const w = windowStartingOn(shop.tjedno, when, offset);
-    if (w && when >= w.start && when < w.end) return w;
+    for (const w of windowsStartingOnDay(week, dayStart + offset * DAY_MS)) {
+      if (wall >= w.start && wall < w.end) return w;
+    }
   }
   return null;
 }
 
-// Prvi interval koji počinje nakon `when` (traži do 8 dana unaprijed).
-export function nextWindow(shop: ShopHours, when: Date): OpenWindow | null {
+function nextWallWindow(week: WeekHours, wall: number): WallWindow | null {
+  const dayStart = Math.floor(wall / DAY_MS) * DAY_MS;
   for (let offset = 0; offset <= 8; offset += 1) {
-    const w = windowStartingOn(shop.tjedno, when, offset);
-    if (w && w.start > when) return w;
+    const upcoming = windowsStartingOnDay(week, dayStart + offset * DAY_MS)
+      .filter((w) => w.start > wall)
+      .sort((a, b) => a.start - b.start);
+    if (upcoming[0]) return upcoming[0];
   }
   return null;
+}
+
+const toWindow = (w: WallWindow): OpenWindow => ({ start: fromWall(w.start), end: fromWall(w.end) });
+
+export function activeWindow(shop: ShopHours, when: Date): OpenWindow | null {
+  const w = activeWallWindow(shop.tjedno, wallMs(when));
+  return w ? toWindow(w) : null;
+}
+
+export function nextWindow(shop: ShopHours, when: Date): OpenWindow | null {
+  const w = nextWallWindow(shop.tjedno, wallMs(when));
+  return w ? toWindow(w) : null;
 }
 
 export function isWithinWorkingHours(shop: ShopHours, when: Date): boolean {
-  return activeWindow(shop, when) !== null;
+  return activeWallWindow(shop.tjedno, wallMs(when)) !== null;
 }
 
 export function isOpenNow(shop: ShopHours): boolean {
@@ -75,30 +109,57 @@ export function openStatusLabel(shop: ShopHours, when: Date = new Date()): strin
   return next ? `Zatvoreno · otvara u ${formatTime(next.start)}` : "Trenutno zatvoreno";
 }
 
-// Termini preuzimanja unutar tekućeg (ili prvog sljedećeg) radnog intervala.
-// Prelazak ponoći je pokriven jer interval nosi apsolutne datume, pa se termini
-// nastavljaju preko 00:00 do stvarnog zatvaranja.
+// Termini preuzimanja unutar tekućeg (ili prvog sljedećeg) radnog intervala, najviše
+// MAX_AHEAD_HOURS unaprijed. Prelazak ponoći je pokriven jer interval nosi apsolutno vrijeme.
 export function pickupSlots(shop: ShopHours, from: Date = new Date()): Date[] {
-  const earliest = new Date(from.getTime() + LEAD_MIN * MINUTE_MS);
-  const window = activeWindow(shop, earliest) ?? nextWindow(shop, earliest);
+  const earliest = wallMs(from) + LEAD_MIN * MIN_MS;
+  const window = activeWallWindow(shop.tjedno, earliest) ?? nextWallWindow(shop.tjedno, earliest);
   if (!window) return [];
 
-  const cursor = new Date(Math.max(window.start.getTime(), earliest.getTime()));
-  cursor.setSeconds(0, 0);
-  const remainder = cursor.getMinutes() % SLOT_STEP_MIN;
-  if (remainder !== 0) cursor.setMinutes(cursor.getMinutes() + (SLOT_STEP_MIN - remainder));
-
+  const step = SLOT_STEP_MIN * MIN_MS;
+  const limit = from.getTime() + MAX_AHEAD_HOURS * 3_600_000;
   const slots: Date[] = [];
-  while (cursor < window.end && slots.length < 96) {
-    slots.push(new Date(cursor));
-    cursor.setMinutes(cursor.getMinutes() + SLOT_STEP_MIN);
+  for (let wall = Math.ceil(Math.max(window.start, earliest) / step) * step; wall < window.end; wall += step) {
+    const slot = fromWall(wall);
+    if (slot.getTime() > limit || slots.length >= 96) break;
+    slots.push(slot);
   }
   return slots;
 }
 
-// "HH:MM" iz checkouta -> stvarni datum termina. Vraća null ako termin nije ponuđen,
-// čime server odbija svako vrijeme izvan radnog vremena. Rješava i dvoznačnost
-// poslije ponoći (01:00 u petak navečer je subota ujutro, ne isti dan).
-export function resolveSlot(shop: ShopHours, hhmm: string, from: Date = new Date()): Date | null {
-  return pickupSlots(shop, from).find((slot) => formatTime(slot) === hhmm) ?? null;
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// opening_hours jsonb: { "mon": [["09:00","23:00"]], …, "fri": [["09:00","02:00"]] }.
+// Dan koji nedostaje ili je prazan = zatvoreno. Nevaljani zapisi se preskaču.
+export function parseOpeningHours(raw: unknown): WeekHours {
+  const source = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  return DAY_KEYS.map((key) => {
+    const list = Array.isArray(source[key]) ? (source[key] as unknown[]) : [];
+    return list.flatMap((pair) => {
+      if (!Array.isArray(pair) || pair.length !== 2) return [];
+      const [otvara, zatvara] = pair;
+      return typeof otvara === "string" && typeof zatvara === "string" && TIME_RE.test(otvara) && TIME_RE.test(zatvara)
+        ? [{ otvara, zatvara }]
+        : [];
+    });
+  });
+}
+
+const DAY_LABELS: Record<number, string> = { 1: "Pon", 2: "Uto", 3: "Sri", 4: "Čet", 5: "Pet", 6: "Sub", 0: "Ned" };
+
+// ["Pon–Čet 09:00 – 23:00", "Pet–Sub 09:00 – 02:00", "Ned 16:00 – 22:00"]
+export function formatHoursLines(week: WeekHours): string[] {
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const groups: { days: number[]; text: string }[] = [];
+  for (const day of order) {
+    const text = (week[day] ?? []).map((w) => `${w.otvara} – ${w.zatvara}`).join(", ");
+    const last = groups[groups.length - 1];
+    if (last && last.text === text) last.days.push(day);
+    else groups.push({ days: [day], text });
+  }
+  return groups.map(({ days, text }) => {
+    const label = days.length === 1 ? DAY_LABELS[days[0]] : `${DAY_LABELS[days[0]]}–${DAY_LABELS[days[days.length - 1]]}`;
+    return `${label} ${text || "zatvoreno"}`;
+  });
 }

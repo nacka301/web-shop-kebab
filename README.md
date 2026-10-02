@@ -36,11 +36,24 @@ To je sve — meni odmah pokazuje tvoju sliku. Ako slika nedostaje, prikazuje se
 - checkout s imenom, telefonom, adresom, načinom plaćanja i vremenom (odmah ili zakazano)
 - potvrda narudžbe s brojem narudžbe
 
-Ovo je samo customer-facing demo — narudžbe se nigdje ne šalju.
+## Podaci i narudžbe
 
-Podaci radnji (radnja, radno vrijeme, jelovnik, opcije) su hardkodirani, jedna datoteka po radnji u [`src/data/shops/`](./src/data/shops). Nova radnja = nova datoteka + jedan redak u [`src/data/shops/index.ts`](./src/data/shops/index.ts).
+Radnje, jelovnik i narudžbe žive u Supabaseu (sheme u [`supabase/migrations`](./supabase/migrations)).
 
-Radno vrijeme se zadaje po danu u tjednu (`tjedno`, indeks 0 = nedjelja). Ako je `zatvara` manji ili jednak `otvara`, radnja se zatvara poslije ponoći — npr. petak `09:00`–`02:00` znači da je u subotu u 01:00 još otvorena.
+- **Stvarne radnje** (`is_demo = false`) spremaju narudžbe: klijent šalje samo id-eve i količine na `POST /api/orders`, a server cijene i opcije računa iz baze i upisuje narudžbu atomarno (`create_order`). Anonimni korisnik ne može čitati ni pisati narudžbe (RLS).
+- **Demo radnje** (`grill-box`, `smash`, `emmito`; [`supabase/seed.sql`](./supabase/seed.sql)) nose oznaku "Demo" i ne spremaju ništa — potvrda je lažna.
+- Praćenje narudžbe: `/[slug]/narudzba/[id]` (osvježava se svakih 5 s, bez telefona i imena kupca).
+- Radno vrijeme je `opening_hours` po danu (`mon`…`sun`, lista `[od, do]`); `do` manji ili jednak `od` znači rad preko ponoći (petak `09:00`–`02:00` = u subotu u 01:00 još otvoreno). Sve se računa u zoni Europe/Zagreb, neovisno o zoni servera.
+- Testna radnja koja nije demo: [`supabase/test-restaurant.sql`](./supabase/test-restaurant.sql).
+
+## Testovi
+
+```bash
+npm test          # jedinični testovi: cijene, validacija, radno vrijeme (bez baze)
+npm run test:e2e  # protiv prave baze i pokrenutog `npm run dev` (treba .env.local i test-radnju)
+```
+
+Varijable okruženja: vidi [`.env.example`](./.env.example). `SUPABASE_SERVICE_ROLE_KEY` je samo za server — nikad s `NEXT_PUBLIC_` i nikad u repozitorij.
 
 Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/grill-box`.
 
