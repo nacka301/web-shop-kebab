@@ -1,6 +1,6 @@
 export type SelectionType = "single" | "multiple";
-export type OrderType = "preuzimanje" | "dostava";
-export type OrderStatus = "na_cekanju" | "prihvacena" | "spremna" | "odbijena";
+export type OrderStatus = "new" | "accepted" | "ready" | "done" | "rejected";
+export type PickupType = "asap" | "time";
 
 export type OptionDTO = {
   id: string;
@@ -14,6 +14,7 @@ export type OptionGroupDTO = {
   naziv: string;
   selectionType: SelectionType;
   obavezno: boolean;
+  maxSelect: number | null;
   options: OptionDTO[];
 };
 
@@ -29,12 +30,13 @@ export type MenuItemDTO = {
   optionGroups: OptionGroupDTO[];
 };
 
-// Radno vrijeme jednog dana. `zatvara` manji ili jednak `otvara` znači zatvaranje poslije
-// ponoći (npr. 09:00–02:00 => zatvara se u 02:00 sljedećeg dana). `null` = neradni dan.
-export type DayHours = { otvara: string; zatvara: string } | null;
+// Jedan radni interval unutar dana. `zatvara` manji ili jednak `otvara` znači zatvaranje
+// poslije ponoći (npr. 09:00–02:00 => zatvara se u 02:00 sljedećeg dana).
+export type DayWindow = { otvara: string; zatvara: string };
 
 // Indeks odgovara Date#getDay(): 0 = nedjelja, 1 = ponedjeljak, … 6 = subota.
-export type WeekHours = [DayHours, DayHours, DayHours, DayHours, DayHours, DayHours, DayHours];
+// Prazna lista = taj dan je radnja zatvorena. Vrijeme je uvijek po Europe/Zagreb.
+export type WeekHours = DayWindow[][];
 
 export type ShopDTO = {
   id: string;
@@ -42,62 +44,58 @@ export type ShopDTO = {
   naziv: string;
   opis: string;
   adresa: string;
+  // Kratki tekstualni logo ili emoji; ako postoji logoUrl, prikazuje se slika.
   logo: string;
+  logoUrl: string | null;
+  accentColor: string;
   telefon: string | null;
-  // Redci radnog vremena za prikaz, npr. ["Pon–Čet 09–23", "Pet–Sub 09–02", "Ned 16–22"].
+  // Redci radnog vremena za prikaz, npr. ["Pon–Čet 09:00 – 23:00", "Ned 16:00 – 22:00"].
   radnoVrijemeRedovi: string[];
   tjedno: WeekHours;
-  // Oznaka vremena pripreme za preuzimanje, npr. "10–15 min".
+  // Oznaka vremena pripreme za preuzimanje, npr. "15 min" ili "10 – 15 min".
   vrijemePripreme: string;
   heroSlika: string | null;
   minIznosDostave: number;
   acceptingOrders: boolean;
+  // Demo radnje ne spremaju narudžbe; samo one nude dostavu (stvarne rade samo preuzimanje).
+  isDemo: boolean;
 };
 
-export type CartLineOption = { groupId: string; optionId: string };
-
-export type CartLineInput = {
-  menuItemId: string;
-  quantity: number;
-  selectedOptions: CartLineOption[];
-};
-
-export type SubmitOrderInput = {
-  shopId: string;
-  vrsta: OrderType;
+// Narudžba za demo radnje (server action) — nikad se ne sprema u bazu.
+export type DemoOrderInput = {
+  slug: string;
+  vrsta: "preuzimanje" | "dostava";
   adresaDostave: string | null;
   ime: string;
   telefon: string;
   napomena: string;
   odmah: boolean;
-  scheduledTime: string | null; // "HH:MM" when !odmah
-  cart: CartLineInput[];
+  scheduledTime: string | null; // ISO trenutak kad !odmah
+  cart: { itemId: string; quantity: number; optionIds: string[] }[];
 };
 
-export type SubmitOrderResult =
-  | { ok: true; publicToken: string }
-  | { ok: false; error: string };
+export type SubmitOrderResult = { ok: true; orderId: string } | { ok: false; error: string };
 
 export type OrderItemDTO = {
-  nazivArtikla: string;
-  kolicina: number;
-  jedinicnaCijena: number;
-  cijenaUkupno: number;
-  odabraneOpcije: { grupa: string; opcija: string; doplata: number }[];
+  name: string;
+  qty: number;
+  lineTotalCents: number;
+  options: string[];
 };
 
+// Namjerno minimalno: bez telefona i imena kupca — stranicu vidi svatko tko ima uuid.
 export type OrderStatusDTO = {
   id: string;
+  shortCode: string;
   status: OrderStatus;
-  vrsta: OrderType;
-  adresaDostave: string | null;
-  imeKupca: string;
-  trazenoVrijeme: string;
-  odmah: boolean;
-  spremnoU: string | null;
-  napomena: string;
-  ukupnaCijena: number;
+  etaMinutes: number | null;
+  rejectReason: string | null;
+  pickupType: PickupType;
+  pickupTime: string | null;
+  deliveryAddress: string | null; // samo demo
+  totalCents: number;
+  items: OrderItemDTO[];
+  restaurant: { name: string; slug: string; phone: string | null };
+  isDemo: boolean;
   createdAt: string;
-  shop: { naziv: string; telefon: string | null; slug: string; vrijemePripreme: string };
-  stavke: OrderItemDTO[];
 };

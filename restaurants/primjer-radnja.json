@@ -1,0 +1,82 @@
+{
+  "_napomena": "Potpuni primjer formata. Probaj: npm run onboard -- restaurants/primjer-radnja.json --demo --dry-run",
+  "slug": "primjer-radnja",
+  "naziv": "Primjer Burger",
+  "opis": "Burgeri i prilozi, svaki dan svježe.",
+  "adresa": "Ulica primjera 1",
+  "grad": "Zagreb",
+  "accent_color": "#e8491d",
+  "logo": "🍔",
+  "hero_slika": null,
+  "telefon": null,
+  "radno_vrijeme": {
+    "pon": null,
+    "uto": [["11:00", "22:00"]],
+    "sri": [["11:00", "22:00"]],
+    "cet": [["11:00", "22:00"]],
+    "pet": [["11:00", "02:00"]],
+    "sub": [["11:00", "02:00"]],
+    "ned": [["12:00", "20:00"]]
+  },
+  "avg_prep_minutes": 15,
+  "owner_email": null,
+  "grupe_opcija": {
+    "umaci": {
+      "naziv": "Umak",
+      "tip": "single",
+      "obavezna": true,
+      "max_select": null,
+      "opcije": [
+        { "naziv": "Majoneza", "doplata": 0 },
+        { "naziv": "Ljuti kečap", "doplata": 0 },
+        { "naziv": "Blagi kečap", "doplata": 0 }
+      ]
+    },
+    "prilozi": {
+      "naziv": "Prilozi",
+      "tip": "multi",
+      "obavezna": false,
+      "max_select": null,
+      "opcije": [
+        { "naziv": "Zelena salata", "doplata": 0 },
+        { "naziv": "Kiseli krastavci", "doplata": 0 },
+        { "naziv": "Luk", "doplata": 0 }
+      ]
+    },
+    "dodaci": {
+      "naziv": "Dodaci",
+      "tip": "multi",
+      "obavezna": false,
+      "max_select": 2,
+      "opcije": [
+        { "naziv": "Slanina", "doplata": 0.5 },
+        { "naziv": "Sir listić", "doplata": 0.5 }
+      ]
+    }
+  },
+  "kategorije": [
+    {
+      "naziv": "Burgeri",
+      "artikli": [
+        { "naziv": "Classic", "opis": "Pecivo, junetina, sir, umak", "cijena": 4.5, "bestseller": true, "opcije": ["umaci", "prilozi", "dodaci"] },
+        { "naziv": "Chicken", "opis": "Pecivo, pohana piletina, umak", "cijena": 5, "opcije": ["umaci", "prilozi", "dodaci"] },
+        {
+          "naziv": "Vege",
+          "opis": "Pecivo, povrće, sir",
+          "cijena": 4,
+          "opcije": [
+            "umaci",
+            { "naziv": "Pecivo", "tip": "single", "obavezna": false, "max_select": null, "opcije": [{ "naziv": "Integralno", "doplata": 0.3 }] }
+          ]
+        }
+      ]
+    },
+    {
+      "naziv": "Prilozi i piće",
+      "artikli": [
+        { "naziv": "Pomfrit", "opis": "Hrskavi pomfrit", "cijena": 2.5, "opcije": ["umaci"] },
+        { "naziv": "Voda 0,5 l", "cijena": 1.5 }
+      ]
+    }
+  ]
+}

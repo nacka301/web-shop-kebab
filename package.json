@@ -6,25 +6,38 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "node --env-file=.env.local scripts/test-orders-e2e.mjs",
+    "onboard": "tsx --env-file-if-exists=.env.local scripts/onboard.ts",
+    "test:admin": "node --env-file=.env.local scripts/test-admin-e2e.mjs",
+    "owner": "tsx --env-file-if-exists=.env.local scripts/create-owner.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "lucide-react": "^1.49.0",
     "next": "16.3.6",
+    "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

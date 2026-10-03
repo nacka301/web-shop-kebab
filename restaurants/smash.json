@@ -1,0 +1,57 @@
+{
+  "_napomena": "Jelovnik iz Google Maps fotografije, čeka pravi jelovnik od vlasnice",
+  "_kako_popuniti": "Svaki \"TODO\" zamijeni potvrđenim podatkom (vidi restaurants/primjer-radnja.json). Skripta odbija upis dok ijedan TODO postoji. Nazivi ispod su iz demo stranice i NISU potvrđeni.",
+  "_primjer_radno_vrijeme": { "pon": null, "uto": [["17:00", "23:00"]], "pet": [["17:00", "02:00"]] },
+  "_primjer_grupe_opcija": { "umaci": { "naziv": "Umak", "tip": "single", "obavezna": true, "max_select": null, "opcije": [{ "naziv": "Majoneza", "doplata": 0 }] } },
+
+  "slug": "smash",
+  "naziv": "SMASH",
+  "opis": "Smash burgeri i sendviči iz Vinkovaca.",
+  "adresa": "TODO",
+  "grad": "Vinkovci",
+  "accent_color": "#e8491d",
+  "logo": "🍔",
+  "hero_slika": null,
+  "telefon": null,
+  "radno_vrijeme": "TODO",
+  "avg_prep_minutes": 15,
+  "owner_email": null,
+  "grupe_opcija": "TODO",
+  "kategorije": [
+    {
+      "naziv": "Smash burgeri",
+      "artikli": [
+        { "naziv": "Smash Classic", "opis": "Domaće pecivo s krumpirom, junetina x2, cheddar sir x2, kiseli krastavci, umak po izboru", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Smash Onion", "opis": "Domaće pecivo s krumpirom, junetina x2, pržena na luku, cheddar sir x2, umak po izboru", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Smash Chicken", "opis": "Domaće pecivo, pohana piletina, umak i salata po izboru", "cijena": "TODO", "opcije": "TODO" }
+      ]
+    },
+    {
+      "naziv": "Sendviči",
+      "artikli": [
+        { "naziv": "Sendvič Šunka", "opis": "Domaće pecivo s krumpirom, šunka, sir Gauda, umak i salata po izboru", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Sendvič Kulen", "opis": "Domaće pecivo s krumpirom, kulen, sir Gauda, umak i salata po izboru", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Sendvič Tuna", "opis": "Pecivo, tuna, salata i umak po izboru", "cijena": "TODO", "opcije": "TODO" }
+      ]
+    },
+    {
+      "naziv": "Ostalo",
+      "artikli": [{ "naziv": "Hot Dog", "opis": "Pecivo, grill kobasica, umak po izboru", "cijena": "TODO", "opcije": "TODO" }]
+    },
+    {
+      "naziv": "Prilozi",
+      "artikli": [
+        { "naziv": "Waffle Fries", "opis": "Domaći waffle fries krumpirići", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Pommes Frites", "opis": "Klasični hrskavi pomfrit", "cijena": "TODO", "opcije": "TODO" }
+      ]
+    },
+    {
+      "naziv": "Piće",
+      "artikli": [
+        { "naziv": "Coca-Cola", "opis": "Ohlađeno gazirano piće", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Voda 0,5 l", "opis": "Negazirana izvorska voda", "cijena": "TODO", "opcije": "TODO" },
+        { "naziv": "Sok", "opis": "Prirodni voćni sok", "cijena": "TODO", "opcije": "TODO" }
+      ]
+    }
+  ]
+}
