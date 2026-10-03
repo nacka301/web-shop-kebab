@@ -11,7 +11,8 @@
     "test:e2e": "node --env-file=.env.local scripts/test-orders-e2e.mjs",
     "onboard": "tsx --env-file-if-exists=.env.local scripts/onboard.ts",
     "test:admin": "node --env-file=.env.local scripts/test-admin-e2e.mjs",
-    "owner": "tsx --env-file-if-exists=.env.local scripts/create-owner.ts"
+    "owner": "tsx --env-file-if-exists=.env.local scripts/create-owner.ts",
+    "test:reminders": "node --env-file=.env.local scripts/test-reminders-e2e.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
