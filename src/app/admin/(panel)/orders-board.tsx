@@ -132,7 +132,7 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
 
   // Dnevni sažetak se računa tek nakon mounta (now > 0), da render ostane čist.
   const dayStart = now ? zagrebDayStart(new Date(now)) : null;
-  const today = dayStart ? orders.filter((order) => new Date(order.createdAt) >= dayStart && order.status !== "rejected") : [];
+  const today = dayStart ? orders.filter((order) => new Date(order.createdAt) >= dayStart && order.status !== "rejected" && order.status !== "cancelled") : [];
   const todayTotal = today.reduce((sum, order) => sum + order.totalCents, 0);
 
   // Jedna izmjena statusa. `expected` štiti od dvostrukog klika i od dva uređaja istodobno.
@@ -404,14 +404,14 @@ function OrderCard({
           </div>
         )}
 
-        {order.status === "new" && mode === "reject" && (
+        {mode === "reject" && (order.status === "new" || order.status === "accepted" || order.status === "ready") && (
           <div className="space-y-2">
             <p className="text-base font-bold">Razlog odbijanja:</p>
             {REJECT_REASONS.map((reason) => (
               <button
                 key={reason}
                 disabled={busy}
-                onClick={() => finish({ status: "rejected", reject_reason: reason }, "new")}
+                onClick={() => finish({ status: "rejected", reject_reason: reason }, order.status)}
                 className={`${btn} w-full bg-red-50 text-red-700`}
               >
                 {reason}
@@ -427,7 +427,7 @@ function OrderCard({
               />
               <button
                 disabled={busy || !customReason.trim()}
-                onClick={() => finish({ status: "rejected", reject_reason: customReason.trim() }, "new")}
+                onClick={() => finish({ status: "rejected", reject_reason: customReason.trim() }, order.status)}
                 className={`${btn} bg-red-600 text-white`}
               >
                 Odbij
@@ -439,19 +439,27 @@ function OrderCard({
           </div>
         )}
 
-        {order.status === "accepted" && (
+        {order.status === "accepted" && mode === "idle" && (
           <div className="space-y-2">
             {order.etaMinutes && <p className="text-sm font-bold text-[var(--muted)]">Potvrđeno · spremno za ~{order.etaMinutes} min</p>}
             <button disabled={busy} onClick={() => void onUpdate(order, { status: "ready" }, "accepted")} className={`${btn} w-full bg-[var(--brand)] text-lg text-white`}>
               Spremno
             </button>
+            <button disabled={busy} onClick={() => setMode("reject")} className={`${btn} w-full bg-red-50 text-red-700`}>
+              Otkaži narudžbu
+            </button>
           </div>
         )}
 
-        {order.status === "ready" && (
-          <button disabled={busy} onClick={() => void onUpdate(order, { status: "done" }, "ready")} className={`${btn} w-full bg-green-600 text-lg text-white`}>
-            Preuzeto
-          </button>
+        {order.status === "ready" && mode === "idle" && (
+          <div className="space-y-2">
+            <button disabled={busy} onClick={() => void onUpdate(order, { status: "done" }, "ready")} className={`${btn} w-full bg-green-600 text-lg text-white`}>
+              Preuzeto
+            </button>
+            <button disabled={busy} onClick={() => setMode("reject")} className={`${btn} w-full bg-red-50 text-red-700`}>
+              Otkaži narudžbu
+            </button>
+          </div>
         )}
       </div>
     </article>

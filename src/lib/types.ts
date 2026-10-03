@@ -1,5 +1,5 @@
 export type SelectionType = "single" | "multiple";
-export type OrderStatus = "new" | "accepted" | "ready" | "done" | "rejected";
+export type OrderStatus = "new" | "accepted" | "ready" | "done" | "rejected" | "cancelled";
 export type PickupType = "asap" | "time";
 
 export type OptionDTO = {

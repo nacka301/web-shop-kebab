@@ -51,7 +51,7 @@ export function buildStats(args: { views: StatsView[]; orders: StatsOrder[]; day
 
   const itemTotals = new Map<string, number>();
   for (const order of orders) {
-    if (order.status === "rejected") continue;
+    if (order.status === "rejected" || order.status === "cancelled") continue;
     for (const item of order.items) itemTotals.set(item.name, (itemTotals.get(item.name) ?? 0) + item.qty);
   }
 

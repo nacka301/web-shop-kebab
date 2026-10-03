@@ -17,3 +17,11 @@ export function saveOrder(id: string, order: OrderStatusDTO) {
 export function getOrder(id: string): OrderStatusDTO | null {
   return orders.get(id) ?? null;
 }
+
+// Demo narudžba: otkazivanje u memoriji (samo dok je "nova"). Vraća true ako je ovo demo narudžba.
+export function cancelDemoOrder(id: string): boolean {
+  const order = orders.get(id);
+  if (!order) return false;
+  if (order.status === "new") orders.set(id, { ...order, status: "cancelled" });
+  return true;
+}

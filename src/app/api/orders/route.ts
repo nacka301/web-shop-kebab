@@ -71,6 +71,9 @@ export async function POST(request: Request) {
     p_source: order.source,
     p_ip_hash: ipHash,
     p_total_cents: order.totalCents,
+    // Granica po IP-u se provjerava UNUTAR transakcije (točna i pod opterećenjem), ne samo gore kao brza provjera.
+    p_max_per_window: RATE_LIMIT_ORDERS,
+    p_window_minutes: RATE_LIMIT_WINDOW_MIN,
     p_items: order.lines.map((line) => ({
       item_id: line.itemId,
       name: line.name,
@@ -81,6 +84,9 @@ export async function POST(request: Request) {
     })),
   });
 
+  if (rpcError?.message?.includes("rate_limited")) {
+    return error(429, "Previše narudžbi u kratkom vremenu. Pokušaj ponovno za nekoliko minuta.");
+  }
   const created = Array.isArray(data) ? data[0] : data;
   if (rpcError || !created) return error(500, "Slanje narudžbe nije uspjelo. Pokušaj ponovno.");
 

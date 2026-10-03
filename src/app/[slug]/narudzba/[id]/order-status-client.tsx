@@ -7,7 +7,7 @@ import type { OrderStatusDTO } from "@/lib/types";
 
 const POLL_INTERVAL_MS = 5000;
 const OVERDUE_MS = 5 * 60 * 1000;
-const TERMINAL: OrderStatusDTO["status"][] = ["done", "rejected"];
+const TERMINAL: OrderStatusDTO["status"][] = ["done", "rejected", "cancelled"];
 
 const money = (cents: number) => `${(cents / 100).toFixed(2).replace(".", ",")} €`;
 
@@ -28,6 +28,8 @@ function statusMessage(order: OrderStatusDTO): { title: string; tone: Tone } {
       return { title: "Preuzeto", tone: "ready" };
     case "rejected":
       return { title: "Odbijeno", tone: "rejected" };
+    case "cancelled":
+      return { title: "Narudžba je otkazana", tone: "rejected" };
   }
 }
 
@@ -63,6 +65,31 @@ export default function OrderStatusClient({ initialOrder }: { initialOrder: Orde
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const cancel = async () => {
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const response = await fetch(`/api/orders/${order.id}/cancel`, { method: "POST" });
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      if (response.ok) setOrder({ ...order, status: "cancelled" });
+      else {
+        setCancelError(body.error ?? "Otkazivanje nije uspjelo. Pokušaj ponovno.");
+        // radnja je u međuvremenu preuzela narudžbu: prikaži pravi status
+        const fresh = await fetch(`/api/orders/${order.id}`, { cache: "no-store" });
+        if (fresh.ok) setOrder((await fresh.json()) as OrderStatusDTO);
+      }
+    } catch {
+      setCancelError("Nema veze. Pokušaj ponovno.");
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
+    }
+  };
 
   const overdue = order.status === "new" && now - new Date(order.createdAt).getTime() > OVERDUE_MS;
   const { title, tone } = statusMessage(order);
@@ -143,6 +170,41 @@ export default function OrderStatusClient({ initialOrder }: { initialOrder: Orde
             <span>{money(order.totalCents)}</span>
           </div>
         </div>
+
+        {order.status === "new" && (
+          <div className="mt-5">
+            {!confirmCancel ? (
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="min-h-12 w-full rounded-xl border border-red-200 px-4 text-base font-bold text-red-700 transition active:scale-[0.98]"
+              >
+                Otkaži narudžbu
+              </button>
+            ) : (
+              <div className="rounded-2xl bg-red-50 p-3">
+                <p className="text-center text-base font-bold text-red-800">Sigurno želiš otkazati narudžbu {order.shortCode}?</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button onClick={() => setConfirmCancel(false)} disabled={cancelling} className="min-h-12 rounded-xl bg-white px-3 text-base font-bold disabled:opacity-50">
+                    Ne, zadrži
+                  </button>
+                  <button onClick={() => void cancel()} disabled={cancelling} className="min-h-12 rounded-xl bg-red-600 px-3 text-base font-bold text-white disabled:opacity-50">
+                    {cancelling ? "Otkazivanje…" : "Da, otkaži"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {cancelError && <p role="alert" className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-center text-base font-semibold text-red-700">{cancelError}</p>}
+          </div>
+        )}
+
+        {(order.status === "accepted" || order.status === "ready") && order.restaurant.phone && !order.isDemo && (
+          <p className="mt-4 text-center text-base text-[var(--muted)]">
+            Treba promjena ili otkazivanje? Nazovi radnju:{" "}
+            <a href={`tel:${order.restaurant.phone}`} className="inline-flex items-center gap-1 font-bold text-[var(--foreground)] underline">
+              <Phone className="h-4 w-4" /> {order.restaurant.phone}
+            </a>
+          </p>
+        )}
 
         {polling && (
           <p className="mt-4 text-center text-xs text-[var(--muted)]">
