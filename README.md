@@ -74,7 +74,8 @@ Nova radnja ide iz jedne JSON datoteke: `npm run onboard -- restaurants/<slug>.j
 
 ```bash
 npm test          # cijene, validacija, radno vrijeme + SQL i RLS na Postgresu u memoriji (bez Dockera)
-npm run test:e2e  # protiv prave baze i pokrenutog `npm run dev` (treba .env.local i test-radnju)
+npm run test:e2e  # narudžbe protiv prave baze i pokrenutog `npm run dev` (treba .env.local i test-radnju)
+npm run test:admin # admin protiv prave baze: prijava, izolacija radnji, Realtime, brojač posjeta
 ```
 
 Varijable okruženja: vidi [`.env.example`](./.env.example). `SUPABASE_SERVICE_ROLE_KEY` je samo za server — nikad s `NEXT_PUBLIC_` i nikad u repozitorij.
