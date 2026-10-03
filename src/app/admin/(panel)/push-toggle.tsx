@@ -20,6 +20,26 @@ const isStandalone = () =>
 
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
+async function waitUntilActive(registration: ServiceWorkerRegistration, timeoutMs = 10_000): Promise<void> {
+  const worker = registration.installing ?? registration.waiting ?? registration.active;
+  if (!worker || worker.state === "activated") return;
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "activated") {
+        clearTimeout(timer);
+        resolve();
+      } else if (worker.state === "redundant") {
+        clearTimeout(timer);
+        reject(new Error("redundant"));
+      }
+    });
+  });
+}
+
+// Kratak, bezopasan opis greške za korisnika (samo naziv greške, bez podataka).
+const reason = (error: unknown) => (error instanceof Error ? error.name || error.message : "nepoznata greška");
+
 // Obavijesti na ovom uređaju: pretplata se sprema u bazu (RLS: samo za vlastitu radnju),
 // a server šalje push čim stigne narudžba, i kad je ekran zaključan ili aplikacija zatvorena.
 export default function PushToggle({ restaurantId }: { restaurantId: string }) {
@@ -57,8 +77,8 @@ export default function PushToggle({ restaurantId }: { restaurantId: string }) {
         setState(permission === "denied" ? "denied" : "off");
         return;
       }
-      await navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin/", updateViaCache: "none" });
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin/", updateViaCache: "none" });
+      await waitUntilActive(registration);
       const subscription =
         (await registration.pushManager.getSubscription()) ??
         (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(PUBLIC_KEY!) }));
@@ -75,8 +95,8 @@ export default function PushToggle({ restaurantId }: { restaurantId: string }) {
       if (error) throw new Error("save");
       setState("on");
       setMessage("Obavijesti su uključene na ovom uređaju.");
-    } catch {
-      setMessage("Uključivanje obavijesti nije uspjelo. Pokušaj ponovno.");
+    } catch (error) {
+      setMessage(`Uključivanje obavijesti nije uspjelo (${reason(error)}). Pokušaj ponovno.`);
       await refresh();
     } finally {
       setBusy(false);
