@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Narudžbe", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { themeColor: "#e8491d" };
+export const viewport: Viewport = { themeColor: "#e8491d", viewportFit: "cover" };
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return children;

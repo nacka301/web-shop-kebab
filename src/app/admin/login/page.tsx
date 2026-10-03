@@ -11,7 +11,7 @@ export default async function AdminLoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-5 py-10">
       <h1 className="font-display text-3xl">Prijava za vlasnike</h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">Prijavi se računom koji ti je dao administrator.</p>
+      <p className="mt-2 text-base text-[var(--muted)]">Prijavi se računom koji ti je dao administrator.</p>
       <LoginForm />
     </main>
   );

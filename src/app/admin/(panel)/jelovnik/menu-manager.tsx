@@ -93,12 +93,12 @@ export default function MenuManager({ restaurant, initial }: { restaurant: Admin
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-3 pb-24 pt-4 sm:px-6">
+    <main className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
       <h1 className="font-display text-2xl">Jelovnik</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">Promjene se spremaju odmah i odmah ih vide gosti na stranici radnje.</p>
+      <p className="mt-1 text-base text-[var(--muted)]">Promjene se spremaju odmah i odmah ih vide gosti na stranici radnje.</p>
 
-      {error && <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
-      {saved && <p role="status" className="mt-3 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-green-700">{saved} Gosti to već vide.</p>}
+      {error && <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-base font-bold text-red-700">{error}</p>}
+      {saved && <p role="status" className="mt-3 rounded-xl bg-green-50 px-4 py-3 text-base font-bold text-green-700">{saved} Gosti to već vide.</p>}
 
       {adding ? (
         <ItemForm
@@ -137,12 +137,12 @@ export default function MenuManager({ restaurant, initial }: { restaurant: Admin
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h3 className="text-lg font-extrabold leading-tight">{item.name}</h3>
-                        {item.description && <p className="mt-0.5 text-sm text-[var(--muted)]">{item.description}</p>}
+                        {item.description && <p className="mt-0.5 text-base text-[var(--muted)]">{item.description}</p>}
                       </div>
                       <p className="shrink-0 text-lg font-extrabold">{formatEuro(item.priceCents)}</p>
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-3 border-t border-black/5 pt-3">
-                      <label className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 text-sm font-bold">
+                      <label className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 text-base font-bold">
                         <input
                           type="checkbox"
                           role="switch"
@@ -151,7 +151,7 @@ export default function MenuManager({ restaurant, initial }: { restaurant: Admin
                           onChange={() => void toggleAvailable(item)}
                           className="relative h-8 w-14 shrink-0 cursor-pointer appearance-none rounded-full bg-black/20 transition-colors before:absolute before:left-1 before:top-1 before:h-6 before:w-6 before:rounded-full before:bg-white before:transition-transform checked:bg-red-600 checked:before:translate-x-6"
                         />
-                        <span>Nema na stanju<span className="block text-xs font-medium text-[var(--muted)]">skriveno gostima</span></span>
+                        <span>Nema na stanju<span className="block text-sm font-medium text-[var(--muted)]">skriveno gostima</span></span>
                       </label>
                       <button onClick={() => { setEditingId(item.id); setError(null); setSaved(null); }} className={`${btn} flex items-center gap-1.5 bg-black/[0.05]`}>
                         <Pencil className="h-4 w-4" /> Uredi
@@ -195,20 +195,20 @@ function ItemForm({
       className="mt-4 space-y-3 rounded-2xl border-2 border-[var(--brand)] bg-white p-4"
     >
       <h3 className="text-lg font-extrabold">{title}</h3>
-      <label className="block text-sm font-bold">
+      <label className="block text-base font-bold">
         Naziv
         <input required maxLength={80} value={values.name} onChange={(e) => setValues({ ...values, name: e.target.value })} className={field} />
       </label>
-      <label className="block text-sm font-bold">
+      <label className="block text-base font-bold">
         Opis
         <textarea maxLength={200} rows={2} value={values.description} onChange={(e) => setValues({ ...values, description: e.target.value })} className={`${field} py-2`} />
       </label>
-      <label className="block text-sm font-bold">
+      <label className="block text-base font-bold">
         Cijena (€)
         <input required inputMode="decimal" placeholder="5,50" value={values.price} onChange={(e) => setValues({ ...values, price: e.target.value })} className={field} />
       </label>
       {categories && (
-        <label className="block text-sm font-bold">
+        <label className="block text-base font-bold">
           Kategorija
           <select required value={values.categoryId} onChange={(e) => setValues({ ...values, categoryId: e.target.value })} className={field}>
             {categories.map((category) => (

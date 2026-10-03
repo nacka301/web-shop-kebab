@@ -11,7 +11,7 @@ export default function LogoutButton({ className = "" }: { className?: string })
     router.refresh();
   };
   return (
-    <button onClick={logout} className={`min-h-12 rounded-xl px-4 text-sm font-bold text-[var(--muted)] transition hover:bg-black/[0.05] ${className}`}>
+    <button onClick={logout} className={`min-h-12 shrink-0 rounded-xl px-4 text-base font-bold text-[var(--muted)] transition hover:bg-black/[0.05] active:bg-black/[0.08] ${className}`}>
       Odjava
     </button>
   );

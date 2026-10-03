@@ -49,12 +49,12 @@ export default function QrPanel({ slug, name, siteUrl, siteUrlConfigured }: { sl
   const downloadPng = async () => download(await qrPngDataUrl(qrUrl, 2048), `${slug}-qr.png`);
 
   return (
-    <main className="mx-auto max-w-3xl px-3 pb-24 pt-4 sm:px-6">
+    <main className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
       <h1 className="font-display text-2xl">Link i QR kod</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">Gosti skeniraju QR ili otvore link i naruče. Svaki link nosi oznaku izvora, pa u Statistici vidiš odakle dolaze.</p>
+      <p className="mt-1 text-base text-[var(--muted)]">Gosti skeniraju QR ili otvore link i naruče. Svaki link nosi oznaku izvora, pa u Statistici vidiš odakle dolaze.</p>
 
       {!siteUrlConfigured && (
-        <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+        <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-base font-semibold text-amber-800">
           Varijabla NEXT_PUBLIC_SITE_URL nije postavljena pa se koristi adresa ove stranice. Prije ispisa plakata postavi pravi javni URL.
         </p>
       )}
@@ -69,7 +69,7 @@ export default function QrPanel({ slug, name, siteUrl, siteUrlConfigured }: { sl
         <div className="mt-3 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt={`QR kod za ${publicUrl}`} width={240} height={240} className="h-60 w-60 rounded-xl border border-black/10" />
+            <img src={preview} alt={`QR kod za ${publicUrl}`} width={240} height={240} className="h-60 w-60 max-w-full rounded-xl border border-black/10" />
           ) : (
             <div className="h-60 w-60 animate-pulse rounded-xl bg-black/[0.06]" />
           )}
@@ -94,7 +94,7 @@ export default function QrPanel({ slug, name, siteUrl, siteUrlConfigured }: { sl
           {LINKS.map((link) => (
             <article key={link.src} className="rounded-2xl border border-[var(--border)] bg-white p-4 card-shadow">
               <h3 className="font-extrabold">{link.title}</h3>
-              <p className="mt-0.5 text-sm text-[var(--muted)]">{link.where}</p>
+              <p className="mt-1 text-base text-[var(--muted)]">{link.where}</p>
               <CopyRow value={buildShopUrl(siteUrl, slug, link.src)} />
             </article>
           ))}
@@ -124,8 +124,8 @@ function CopyRow({ value, big = false }: { value: string; big?: boolean }) {
   };
 
   return (
-    <div className="mt-2 flex items-stretch gap-2">
-      <input readOnly value={value} onFocus={(event) => event.currentTarget.select()} className={`min-w-0 flex-1 rounded-xl border border-black/10 bg-black/[0.03] px-3 outline-none ${big ? "min-h-14 text-base font-bold" : "min-h-12 text-sm"}`} />
+    <div className="mt-2 flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-stretch">
+      <input readOnly value={value} onFocus={(event) => event.currentTarget.select()} className={`min-w-0 flex-1 rounded-xl border border-black/10 bg-black/[0.03] px-3 outline-none ${big ? "min-h-14 text-base font-bold" : "min-h-12 text-base"}`} />
       <button onClick={() => void copy()} className={`${btn} shrink-0 ${copied ? "bg-green-600 text-white" : "bg-black/[0.06]"}`}>
         {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />} {copied ? "Kopirano" : "Kopiraj"}
       </button>

@@ -31,15 +31,15 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={submit} className="mt-6 space-y-4">
-      <label className="block text-sm font-bold">
+      <label className="block text-base font-bold">
         Korisničko ime
         <input type="text" required autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={identifier} onChange={(e) => setIdentifier(e.target.value)} className={field} />
       </label>
-      <label className="block text-sm font-bold">
+      <label className="block text-base font-bold">
         Lozinka
         <input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
       </label>
-      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-base font-semibold text-red-700">{error}</p>}
       <button
         disabled={busy}
         className="min-h-12 w-full rounded-xl bg-[var(--brand)] py-3.5 font-bold text-white transition active:scale-[0.98] disabled:bg-black/20"

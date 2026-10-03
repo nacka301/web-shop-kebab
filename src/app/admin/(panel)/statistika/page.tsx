@@ -48,15 +48,15 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   const maxSource = Math.max(1, ...stats.bySource.map((s) => s.views));
 
   return (
-    <main className="mx-auto max-w-3xl px-3 pb-24 pt-4 sm:px-6">
-      <div className="flex items-center justify-between gap-3">
+    <main className="mx-auto max-w-3xl px-4 pb-8 pt-4 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl">Statistika</h1>
         <div className="flex gap-1.5">
           {PERIODS.map((period) => (
             <Link
               key={period}
               href={`/admin/statistika?dana=${period}`}
-              className={`flex min-h-12 items-center rounded-xl px-4 text-sm font-bold ${days === period ? "bg-[var(--brand)] text-white" : "bg-white border border-[var(--border)]"}`}
+              className={`flex min-h-12 items-center rounded-xl px-4 text-base font-bold ${days === period ? "bg-[var(--brand)] text-white" : "bg-white border border-[var(--border)]"}`}
             >
               {period} dana
             </Link>
@@ -73,7 +73,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       {!stats.enough ? (
         <p className="mt-6 rounded-2xl border border-dashed border-black/20 bg-white px-4 py-10 text-center text-base font-bold text-[var(--muted)]">
           Još nema dovoljno podataka.
-          <span className="mt-1 block text-sm font-medium">Čim gosti počnu dolaziti preko QR koda i linkova, ovdje će se pojaviti razrada po izvoru, narudžbe po danima i najprodavaniji artikli.</span>
+          <span className="mt-1 block text-base font-medium">Čim gosti počnu dolaziti preko QR koda i linkova, ovdje će se pojaviti razrada po izvoru, narudžbe po danima i najprodavaniji artikli.</span>
         </p>
       ) : (
         <>
@@ -81,9 +81,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             <div className="space-y-3">
               {stats.bySource.map((row) => (
                 <div key={row.src}>
-                  <div className="flex items-baseline justify-between text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-base">
                     <span className="font-bold">{SOURCE_LABELS[row.src]}</span>
-                    <span className="text-[var(--muted)]">{row.views} posjeta · {row.orders} narudžbi</span>
+                    <span className="text-sm text-[var(--muted)]">{row.views} posjeta · {row.orders} narudžbi</span>
                   </div>
                   <div className="mt-1 h-3 overflow-hidden rounded-full bg-black/[0.06]">
                     <div className="h-full rounded-full bg-[var(--brand)]" style={{ width: `${(row.views / maxSource) * 100}%` }} />
@@ -101,7 +101,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex justify-between text-xs text-[var(--muted)]">
+            <div className="mt-1 flex justify-between text-sm text-[var(--muted)]">
               <span>{formatDay(stats.byDay[0].day)}</span>
               <span>najviše {maxDay} u danu</span>
               <span>{formatDay(stats.byDay[stats.byDay.length - 1].day)}</span>
@@ -110,7 +110,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
           <Section title="Top 5 artikala">
             {stats.topItems.length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">Još nema prihvaćenih narudžbi.</p>
+              <p className="text-base text-[var(--muted)]">Još nema prihvaćenih narudžbi.</p>
             ) : (
               <ol className="space-y-2">
                 {stats.topItems.map((item, index) => (
@@ -122,7 +122,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 ))}
               </ol>
             )}
-            <p className="mt-3 text-xs text-[var(--muted)]">Top artikli ne uključuju odbijene narudžbe.</p>
+            <p className="mt-3 text-sm text-[var(--muted)]">Top artikli ne uključuju odbijene narudžbe.</p>
           </Section>
         </>
       )}
@@ -136,7 +136,7 @@ function Tile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-white p-3 card-shadow">
       <p className="text-2xl font-black leading-none">{value}</p>
-      <p className="mt-1.5 text-xs font-semibold text-[var(--muted)]">{label}</p>
+      <p className="mt-1.5 text-sm font-semibold leading-tight text-[var(--muted)]">{label}</p>
     </div>
   );
 }

@@ -14,7 +14,7 @@ type Tab = "new" | "accepted" | "ready";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "new", label: "Nove" },
-  { key: "accepted", label: "U pripremi" },
+  { key: "accepted", label: "Priprema" },
   { key: "ready", label: "Spremne" },
 ];
 const ETA_CHOICES = [10, 15, 20, 30];
@@ -25,15 +25,6 @@ const CONNECTED_GRACE_MS = 25_000;
 const REPEAT_SOUND_MS = 20_000;
 const WAKE_HINT_KEY = "adminWakeHintSeen";
 const INSTALL_HINT_KEY = "adminInstallHintSeen";
-
-// 1 narudžba, 2–4 narudžbe, 5+ narudžbi (i 11–14 narudžbi).
-const ordersLabel = (n: number) => {
-  const last = n % 10;
-  const lastTwo = n % 100;
-  if (last === 1 && lastTwo !== 11) return "narudžba";
-  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return "narudžbe";
-  return "narudžbi";
-};
 
 const btn =
   "min-h-12 rounded-xl px-4 text-base font-bold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50";
@@ -55,6 +46,7 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
   const lastRefreshRef = useRef(0);
 
   const chime = useChime();
+  const [soundDismissed, setSoundDismissed] = useState(false);
   const wake = useWakeLock();
 
   const refresh = useCallback(async () => {
@@ -172,75 +164,68 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
   };
 
   return (
-    <main className="mx-auto max-w-[1240px] px-3 pb-24 pt-3 sm:px-6">
+    <main className="mx-auto max-w-[1240px] px-4 pb-8 pt-3 sm:px-6">
       <div
-        className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${connected ? "bg-green-50 text-green-700" : "bg-red-600 text-white"}`}
+        className={`flex min-h-12 items-center justify-between gap-3 rounded-xl px-4 text-base font-bold ${connected ? "bg-green-50 text-green-700" : "bg-red-600 text-white"}`}
         role="status"
       >
-        {connected ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-        {connected ? "Povezano" : "Nema veze, narudžbe mogu kasniti"}
+        <span className="flex items-center gap-2">
+          {connected ? <Wifi className="h-5 w-5 shrink-0" /> : <WifiOff className="h-5 w-5 shrink-0" />}
+          {connected ? "Povezano" : "Nema veze, narudžbe mogu kasniti"}
+        </span>
+        {connected && (
+          <span className="text-right text-[var(--foreground)]">
+            Danas: {today.length} · {formatEuro(todayTotal)}
+          </span>
+        )}
       </div>
 
-      {!chime.ready && (
+      {!chime.ready && !soundDismissed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Uključi zvuk"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-red-600 px-6 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-center text-white"
+        >
+          <Volume2 className="h-24 w-24" aria-hidden />
+          <h2 className="text-3xl font-black leading-tight">Zvuk je isključen</h2>
+          <p className="max-w-xs text-lg font-semibold">Bez zvuka nećeš čuti nove narudžbe. Dodirni gumb ispod.</p>
+          <button
+            onClick={() => void chime.enable()}
+            className="min-h-16 w-full max-w-sm rounded-2xl bg-white px-6 text-xl font-black text-red-700 shadow-lg transition active:scale-[0.97]"
+          >
+            UKLJUČI ZVUK
+          </button>
+          <button onClick={() => setSoundDismissed(true)} className="min-h-12 px-4 text-base font-bold underline underline-offset-4">
+            Nastavi bez zvuka
+          </button>
+        </div>
+      )}
+      {!chime.ready && soundDismissed && (
         <button
           onClick={() => void chime.enable()}
-          className={`${btn} mt-3 flex w-full items-center justify-center gap-2 bg-amber-500 text-lg text-white`}
+          className="mt-3 flex min-h-12 w-full items-center gap-2 rounded-xl bg-red-600 px-4 text-left text-base font-bold text-white"
         >
-          <Volume2 className="h-6 w-6" /> Uključi zvuk
+          <BellOff className="h-5 w-5 shrink-0" /> Zvuk je isključen. Dodirni za uključivanje.
         </button>
       )}
-      {!chime.ready && (
-        <p className="mt-2 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
-          <BellOff className="mt-0.5 h-4 w-4 shrink-0" /> Zvuk nije uključen — nove narudžbe nećete čuti.
-        </p>
-      )}
 
-      <PushToggle restaurantId={restaurant.id} />
-
-      {wake.unsupported && showWakeHint && (
-        <Hint
-          text="Postavite da ekran ostane upaljen (Postavke → Zaslon → Vrijeme do isključenja), jer ovaj preglednik to ne može sam."
-          onClose={() => {
-            writeFlag(WAKE_HINT_KEY, true);
-            setShowWakeHint(false);
-          }}
+      <label className="mt-2 flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-2 card-shadow">
+        <span className="min-w-0">
+          <span className="block text-base font-bold">Ne primamo narudžbe</span>
+          {!accepting && <span className="block text-sm font-bold text-red-700">Pauza je uključena: gosti ne mogu naručiti.</span>}
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          checked={!accepting}
+          onChange={() => void togglePause()}
+          className="h-8 w-14 shrink-0 cursor-pointer appearance-none rounded-full bg-black/20 transition-colors checked:bg-red-600 relative before:absolute before:left-1 before:top-1 before:h-6 before:w-6 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-6"
         />
-      )}
-      {showInstallHint && (
-        <Hint
-          title="Dodaj na početni zaslon"
-          text="Android (Chrome): ⋮ → „Dodaj na početni zaslon”. iPhone (Safari): gumb Podijeli → „Dodaj na početni zaslon”. Tako se otvara kao aplikacija."
-          onClose={() => {
-            writeFlag(INSTALL_HINT_KEY, true);
-            setShowInstallHint(false);
-          }}
-        />
-      )}
-
-      <section className="mt-3 rounded-2xl border border-[var(--border)] bg-white p-4 card-shadow">
-        <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3">
-          <span className="text-base font-bold">Trenutno ne primamo narudžbe</span>
-          <input
-            type="checkbox"
-            role="switch"
-            checked={!accepting}
-            onChange={() => void togglePause()}
-            className="h-8 w-14 shrink-0 cursor-pointer appearance-none rounded-full bg-black/20 transition-colors checked:bg-red-600 relative before:absolute before:left-1 before:top-1 before:h-6 before:w-6 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-6"
-          />
-        </label>
-        <p className={`mt-1 text-sm ${accepting ? "text-[var(--muted)]" : "font-bold text-red-700"}`}>
-          {accepting ? "Gosti mogu naručivati." : "Naručivanje je pauzirano — gosti vide natpis i ne mogu naručiti."}
-        </p>
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-[var(--muted)]">
-          <Clock className="h-4 w-4" /> Prema radnom vremenu: {hoursLabel || "…"}
-        </p>
-        <p className="mt-2 border-t border-black/5 pt-2 text-sm font-bold">
-          Danas: {today.length} {ordersLabel(today.length)} · {formatEuro(todayTotal)}
-        </p>
-      </section>
+      </label>
 
       {error && (
-        <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+        <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-base font-bold text-red-700">
           {error}
         </p>
       )}
@@ -250,11 +235,11 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`${btn} relative px-2 text-sm ${tab === key ? "bg-[var(--brand)] text-white" : "bg-white text-[var(--foreground)] border border-[var(--border)]"}`}
+            className={`${btn} relative px-2 text-base ${tab === key ? "bg-[var(--brand)] text-white" : "bg-white text-[var(--foreground)] border border-[var(--border)]"}`}
           >
             {label}
             {columns[key].length > 0 && (
-              <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${tab === key ? "bg-white/25" : "bg-black/10"}`}>{columns[key].length}</span>
+              <span className={`ml-1.5 rounded-full px-2 py-0.5 text-sm ${tab === key ? "bg-white/25" : "bg-black/10"}`}>{columns[key].length}</span>
             )}
           </button>
         ))}
@@ -263,12 +248,12 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
       <div className="mt-3 grid gap-4 md:grid-cols-3">
         {TABS.map(({ key, label }) => (
           <section key={key} className={`${tab === key ? "block" : "hidden"} md:block`}>
-            <h2 className="mb-2 hidden items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-[var(--muted)] md:flex">
-              {label} <span className="rounded-full bg-black/10 px-2 py-0.5 text-xs">{columns[key].length}</span>
+            <h2 className="mb-2 hidden items-center gap-2 text-base font-extrabold uppercase tracking-wide text-[var(--muted)] md:flex">
+              {label} <span className="rounded-full bg-black/10 px-2 py-0.5 text-sm">{columns[key].length}</span>
             </h2>
             <div className="space-y-3">
               {columns[key].length === 0 && (
-                <p className="rounded-2xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-[var(--muted)]">
+                <p className="rounded-2xl border border-dashed border-black/15 px-4 py-8 text-center text-base text-[var(--muted)]">
                   Nema narudžbi.
                 </p>
               )}
@@ -279,18 +264,45 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
           </section>
         ))}
       </div>
+
+      <section aria-label="Postavke obavijesti" className="mt-8 border-t border-black/10 pt-4">
+        <h2 className="text-sm font-extrabold uppercase tracking-wide text-[var(--muted)]">Obavijesti i uređaj</h2>
+        <PushToggle restaurantId={restaurant.id} />
+        {wake.unsupported && showWakeHint && (
+          <Hint
+            text="Postavite da ekran ostane upaljen (Postavke → Zaslon → Vrijeme do isključenja), jer ovaj preglednik to ne može sam."
+            onClose={() => {
+              writeFlag(WAKE_HINT_KEY, true);
+              setShowWakeHint(false);
+            }}
+          />
+        )}
+        {showInstallHint && (
+          <Hint
+            title="Dodaj na početni zaslon"
+            text="Android (Chrome): ⋮ → „Dodaj na početni zaslon”. iPhone (Safari): gumb Podijeli → „Dodaj na početni zaslon”. Tako se otvara kao aplikacija."
+            onClose={() => {
+              writeFlag(INSTALL_HINT_KEY, true);
+              setShowInstallHint(false);
+            }}
+          />
+        )}
+        <p className="mt-3 flex items-center gap-2 text-base text-[var(--muted)]">
+          <Clock className="h-4 w-4 shrink-0" /> Prema radnom vremenu: {hoursLabel || "…"}
+        </p>
+      </section>
     </main>
   );
 }
 
 function Hint({ title, text, onClose }: { title?: string; text: string; onClose: () => void }) {
   return (
-    <div className="mt-3 flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900">
+    <div className="mt-3 flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3 text-base text-blue-900">
       <p className="flex-1">
         {title && <strong className="block">{title}</strong>}
         {text}
       </p>
-      <button onClick={onClose} aria-label="Zatvori uputu" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg hover:bg-blue-100">
+      <button onClick={onClose} aria-label="Zatvori uputu" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg hover:bg-blue-100">
         <X className="h-5 w-5" />
       </button>
     </div>
@@ -372,7 +384,7 @@ function OrderCard({
 
         {order.status === "new" && mode === "accept" && (
           <div>
-            <p className="mb-2 text-sm font-bold">Spremno za:</p>
+            <p className="mb-2 text-base font-bold">Spremno za:</p>
             <div className="grid grid-cols-4 gap-2">
               {ETA_CHOICES.map((eta) => (
                 <button
@@ -382,7 +394,7 @@ function OrderCard({
                   className={`${btn} bg-green-600 px-1 text-white`}
                 >
                   {eta}
-                  <span className="block text-[11px] font-semibold opacity-90">min</span>
+                  <span className="block text-[13px] font-semibold opacity-90">min</span>
                 </button>
               ))}
             </div>
@@ -394,7 +406,7 @@ function OrderCard({
 
         {order.status === "new" && mode === "reject" && (
           <div className="space-y-2">
-            <p className="text-sm font-bold">Razlog odbijanja:</p>
+            <p className="text-base font-bold">Razlog odbijanja:</p>
             {REJECT_REASONS.map((reason) => (
               <button
                 key={reason}
