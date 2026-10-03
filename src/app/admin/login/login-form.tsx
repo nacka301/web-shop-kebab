@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { loginIdentifierToEmail } from "@/lib/auth/username";
 
 const field =
   "mt-1 w-full rounded-xl border border-black/10 bg-white p-3.5 text-base outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -18,9 +19,9 @@ export default function LoginForm() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await createBrowserSupabaseClient().auth.signInWithPassword({ email: email.trim(), password });
+    const { error: signInError } = await createBrowserSupabaseClient().auth.signInWithPassword({ email: loginIdentifierToEmail(identifier), password });
     if (signInError) {
-      setError("Pogrešan e-mail ili lozinka.");
+      setError("Pogrešno korisničko ime ili lozinka.");
       setBusy(false);
       return;
     }
@@ -31,8 +32,8 @@ export default function LoginForm() {
   return (
     <form onSubmit={submit} className="mt-6 space-y-4">
       <label className="block text-sm font-bold">
-        E-mail
-        <input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+        Korisničko ime
+        <input type="text" required autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={identifier} onChange={(e) => setIdentifier(e.target.value)} className={field} />
       </label>
       <label className="block text-sm font-bold">
         Lozinka

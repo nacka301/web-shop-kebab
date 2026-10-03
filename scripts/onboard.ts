@@ -1,11 +1,11 @@
 // Dodavanje/ažuriranje radnje iz jedne JSON datoteke.
-//   npm run onboard -- restaurants/smash.json [--yes] [--demo] [--create-owner] [--dry-run]
+//   npm run onboard -- restaurants/smash.json [--yes] [--demo] [--create-owner [--owner=ime]] [--dry-run]
 // Koristi service role iz .env.local; ključ se nikad ne ispisuje.
-import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createOwner } from "./lib/owner";
 import { applyPlan, buildPlan, describePlan, PlanError, type Plan, type PlanStore, type PlanTable, type Row } from "../src/lib/onboarding/plan";
 import { findTodos, formatZodIssues, restaurantFileSchema, stripComments } from "../src/lib/onboarding/schema";
 
@@ -73,40 +73,6 @@ async function uploadImages(client: SupabaseClient, plan: Plan) {
 }
 
 // Kreira Supabase Auth korisnika (ako ga nema) i veže ga uz radnju. Lozinka se ispiše SAMO jednom u terminal.
-async function createOwner(client: SupabaseClient, email: string, restaurantId: string) {
-  const password = randomBytes(12).toString("base64url");
-  let userId: string | null = null;
-  let created = false;
-
-  const { data, error } = await client.auth.admin.createUser({ email, password, email_confirm: true });
-  if (data?.user) {
-    userId = data.user.id;
-    created = true;
-  } else if (error && /already|registered|exists/i.test(error.message)) {
-    for (let page = 1; page <= 50 && !userId; page += 1) {
-      const { data: list, error: listError } = await client.auth.admin.listUsers({ page, perPage: 200 });
-      if (listError) throw new Error(`popis korisnika: ${listError.message}`);
-      userId = list.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())?.id ?? null;
-      if (list.users.length < 200) break;
-    }
-  } else if (error) {
-    throw new Error(`kreiranje korisnika: ${error.message}`);
-  }
-  if (!userId) throw new Error("korisnik nije pronađen niti kreiran");
-
-  const { error: staffError } = await client.from("restaurant_staff").upsert({ user_id: userId, restaurant_id: restaurantId }, { onConflict: "user_id" });
-  if (staffError) throw new Error(`restaurant_staff: ${staffError.message}`);
-
-  console.log("");
-  if (created) {
-    console.log(`Račun vlasnika kreiran: ${email}`);
-    console.log(`Privremena lozinka (prikazuje se SAMO sada, nigdje se ne sprema): ${password}`);
-    console.log("Lozinku treba promijeniti pri prvoj prijavi (Supabase → Authentication → Users → korisnik → Send password recovery).");
-  } else {
-    console.log(`Korisnik ${email} već postoji: lozinka NIJE promijenjena, samo je vezan uz radnju.`);
-  }
-}
-
 async function confirm(question: string): Promise<boolean> {
   if (!process.stdin.isTTY) return false;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -118,8 +84,10 @@ async function confirm(question: string): Promise<boolean> {
 async function main() {
   const args = process.argv.slice(2);
   const flags = new Set(args.filter((a) => a.startsWith("--")));
+  // --owner=ankica: korisničko ime umjesto e-maila (računu ne treba pravi e-mail).
+  const ownerLogin = args.find((a) => a.startsWith("--owner="))?.slice("--owner=".length) || null;
   const fileArg = args.find((a) => !a.startsWith("--"));
-  if (!fileArg) fail("Navedi datoteku: npm run onboard -- restaurants/<slug>.json [--yes] [--demo] [--create-owner] [--dry-run]");
+  if (!fileArg) fail("Navedi datoteku: npm run onboard -- restaurants/<slug>.json [--yes] [--demo] [--create-owner [--owner=ime]] [--dry-run]");
 
   const filePath = path.resolve(fileArg!);
   if (!existsSync(filePath)) fail(`Datoteka ne postoji: ${fileArg}`);
@@ -171,7 +139,8 @@ async function main() {
   }
   const missingImages = plan.images.filter((image) => !existsSync(image.file));
   if (missingImages.length > 0) fail("Slike navedene u datoteci ne postoje:", missingImages.map((i) => path.relative(process.cwd(), i.file)));
-  if (flags.has("--create-owner") && !plan.ownerEmail) fail('--create-owner traži "owner_email" u datoteci.');
+  const ownerIdentifier = ownerLogin ?? plan.ownerEmail;
+  if (flags.has("--create-owner") && !ownerIdentifier) fail('--create-owner traži "owner_email" u datoteci ili --owner=<korisničko-ime>.');
 
   // 4) SAŽETAK.
   console.log("\n=== SAŽETAK ===");
@@ -182,7 +151,7 @@ async function main() {
       : `Radnja /${plan.slug} je NOVA.`
   );
   for (const line of describePlan(plan)) console.log(line);
-  if (flags.has("--create-owner")) console.log(`\nKreirat će se račun vlasnika za ${plan.ownerEmail}.`);
+  if (flags.has("--create-owner")) console.log(`\nKreirat će se račun vlasnika za ${ownerIdentifier}.`);
   console.log("\nArtikli kojih nema u datoteci bit će SAKRIVENI (ne brišu se).");
 
   if (dryRun) {
@@ -200,7 +169,7 @@ async function main() {
     await uploadImages(client!, plan);
     const result = await applyPlan(plan, supabaseStore(client!));
     console.log(`\nGotovo. Sakriveno starih artikala: ${result.hiddenItems}, uklonjenih starih grupa/opcija: ${result.deletedGroups}/${result.deletedOptions}.`);
-    if (flags.has("--create-owner")) await createOwner(client!, plan.ownerEmail!, plan.restaurantId);
+    if (flags.has("--create-owner")) await createOwner(client!, ownerIdentifier!, plan.restaurantId);
   } catch (error) {
     fail((error as Error).message);
   }
