@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Štiti /admin/*: bez prijave vodi na /admin/login. Provjera "imaš li radnju" je u layoutu
 // (poruka "Nemate pristup"), a stvarnu zaštitu podataka radi RLS u bazi.
-const OPEN_PATHS = ["/admin/login", "/admin/manifest.webmanifest", "/admin/icons"];
+const OPEN_PATHS = ["/admin/login", "/admin/manifest.webmanifest", "/admin/icons", "/admin/sw.js"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

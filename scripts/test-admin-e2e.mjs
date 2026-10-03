@@ -147,6 +147,24 @@ try {
   const badEmail = await ownerA.from("restaurants").update({ owner_email: "nije-mail" }).eq("id", A).select("id");
   check("neispravan e-mail odbija baza", !!badEmail.error);
 
+  // --- web push pretplate ---
+  const { data: authA } = await ownerA.auth.getUser();
+  const subA = await ownerA.from("push_subscriptions").insert({ restaurant_id: A, user_id: authA.user.id, endpoint: `https://push.example/e2e-${stamp}`, p256dh: "k", auth: "a" }).select("id");
+  check("vlasnik A sprema push pretplatu za svoju radnju", !subA.error && subA.data?.length === 1, subA.error?.message);
+  const subForeign = await ownerA.from("push_subscriptions").insert({ restaurant_id: B, user_id: authA.user.id, endpoint: `https://push.example/e2e-x-${stamp}`, p256dh: "k", auth: "a" });
+  check("vlasnik A NE može spremiti pretplatu za radnju B", !!subForeign.error);
+  const seenSubsB = await ownerB.from("push_subscriptions").select("id");
+  check("vlasnik B NE vidi pretplate radnje A", (seenSubsB.data ?? []).length === 0);
+  const anonSubs = await newAnon().from("push_subscriptions").select("id");
+  check("anonimac NE čita push pretplate", !!anonSubs.error || (anonSubs.data ?? []).length === 0);
+  await service.from("push_subscriptions").delete().like("endpoint", "https://push.example/e2e-%");
+
+  // --- service worker i probna obavijest ---
+  const sw = await fetch(`${BASE}/admin/sw.js`, { redirect: "manual" });
+  check("/admin/sw.js dostupan bez prijave kao JavaScript", sw.status === 200 && (sw.headers.get("content-type") ?? "").includes("javascript"), String(sw.status));
+  const anonTest = await fetch(`${BASE}/api/admin/push/test`, { method: "POST", redirect: "manual" });
+  check("probna obavijest bez prijave nije dopuštena", anonTest.status !== 200, String(anonTest.status));
+
   // --- jelovnik ---
   const price2 = await ownerA.from("menu_items").update({ price_cents: 650 }).eq("id", "00000000-0000-4000-8000-0000000000c2").select("id");
   check("vlasnik mijenja cijenu svog artikla", price2.data?.length === 1);

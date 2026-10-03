@@ -7,6 +7,7 @@ import type { AdminRestaurant } from "@/lib/admin/context";
 import { formatTime, openStatusLabel, zagrebDayStart } from "@/lib/hours";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import type { OrderStatus } from "@/lib/types";
+import PushToggle from "./push-toggle";
 import { readFlag, useChime, useTitleBlink, useWakeLock, writeFlag } from "./alerts";
 
 type Tab = "new" | "accepted" | "ready";
@@ -193,6 +194,8 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
           <BellOff className="mt-0.5 h-4 w-4 shrink-0" /> Zvuk nije uključen — nove narudžbe nećete čuti.
         </p>
       )}
+
+      <PushToggle restaurantId={restaurant.id} />
 
       {wake.unsupported && showWakeHint && (
         <Hint

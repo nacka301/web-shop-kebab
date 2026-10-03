@@ -3,6 +3,8 @@ import { after, NextResponse } from "next/server";
 import { loadPricingItems, loadRestaurantForOrder } from "@/lib/data/restaurants";
 import { buildNewOrderEmail } from "@/lib/email/new-order";
 import { sendEmail } from "@/lib/email/resend";
+import { buildNewOrderPush } from "@/lib/push/payload";
+import { isPushConfigured, sendPushToRestaurant } from "@/lib/push/send";
 import { RATE_LIMIT_ORDERS, RATE_LIMIT_WINDOW_MIN } from "@/lib/orders/limits";
 import { prepareOrder } from "@/lib/orders/prepare";
 import { orderRequestSchema } from "@/lib/orders/schema";
@@ -86,6 +88,20 @@ export async function POST(request: Request) {
   // greška (Resend pao, loša adresa, nema postavki) se samo zabilježi — narudžba je već spremljena.
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
   const adminUrl = `${siteUrl.replace(/\/+$/, "")}/admin`;
+  // Push na uređaje vlasnika: zaseban after(), da pad maila ne zaustavi push i obrnuto.
+  after(async () => {
+    try {
+      if (!isPushConfigured()) return;
+      const payload = buildNewOrderPush({
+        shortCode: created.short_code,
+        itemCount: order.lines.reduce((sum, line) => sum + line.qty, 0),
+        totalCents: order.totalCents,
+      });
+      await sendPushToRestaurant(supabase, order.restaurantId, payload);
+    } catch {
+      console.error("[push] obavijest o narudžbi nije poslana");
+    }
+  });
   after(async () => {
     try {
       const { data: owner } = await supabase.from("restaurants").select("name, owner_email").eq("id", order.restaurantId).maybeSingle();
