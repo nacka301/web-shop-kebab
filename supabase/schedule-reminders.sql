@@ -28,3 +28,13 @@ select cron.schedule(
     );
   $job$
 );
+
+-- Čišćenje: pg_cron zapisuje svaki poziv (1440 redaka dnevno). Dnevno brišemo zapise starije od 3 dana.
+select cron.unschedule('cleanup-cron-history')
+where exists (select 1 from cron.job where jobname = 'cleanup-cron-history');
+
+select cron.schedule(
+  'cleanup-cron-history',
+  '17 3 * * *',
+  $job$ delete from cron.job_run_details where end_time < now() - interval '3 days'; $job$
+);
