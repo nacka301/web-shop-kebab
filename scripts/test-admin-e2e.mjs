@@ -185,6 +185,25 @@ try {
   const closedAgain = await guestOrderB();
   check("kad se isključi, opet vrijedi radno vrijeme (409)", closedAgain.status === 409, String(closedAgain.status));
 
+  // --- fotografije jela (Storage) ---
+  const jpeg = new Blob([Uint8Array.from([0xff, 0xd8, 0xff, 0xd9])], { type: "image/jpeg" });
+  const ownPath = `${A}/e2e-${stamp}.jpg`;
+  const upOwn = await ownerA.storage.from("menu-images").upload(ownPath, jpeg, { contentType: "image/jpeg" });
+  check("vlasnik A šalje sliku u mapu SVOJE radnje", !upOwn.error, upOwn.error?.message);
+  const upForeign = await ownerA.storage.from("menu-images").upload(`${B}/e2e-${stamp}.jpg`, jpeg, { contentType: "image/jpeg" });
+  check("vlasnik A NE može slati slike u mapu radnje B", !!upForeign.error);
+  const upBadPath = await ownerA.storage.from("menu-images").upload(`nije-uuid/e2e-${stamp}.jpg`, jpeg, { contentType: "image/jpeg" });
+  check("…ni u mapu koja nije id radnje", !!upBadPath.error);
+  const upAnon = await newAnon().storage.from("menu-images").upload(`${A}/anon-${stamp}.jpg`, jpeg, { contentType: "image/jpeg" });
+  check("anonimac NE može slati slike", !!upAnon.error);
+  const publicRead = await fetch(`${url}/storage/v1/object/public/menu-images/${ownPath}`);
+  check("poslana slika je javno dostupna gostima", publicRead.status === 200, String(publicRead.status));
+  const setImg = await ownerA.from("menu_items").update({ image_url: `${url}/storage/v1/object/public/menu-images/${ownPath}` }).eq("id", "00000000-0000-4000-8000-0000000000c2").select("id");
+  check("vlasnik povezuje sliku s vlastitim artiklom", setImg.data?.length === 1, setImg.error?.message);
+  await ownerA.from("menu_items").update({ image_url: null }).eq("id", "00000000-0000-4000-8000-0000000000c2");
+  const delOwn = await ownerA.storage.from("menu-images").remove([ownPath]);
+  check("vlasnik briše svoju sliku", !delOwn.error && (delOwn.data?.length ?? 0) === 1, delOwn.error?.message);
+
   // --- jelovnik ---
   const price2 = await ownerA.from("menu_items").update({ price_cents: 650 }).eq("id", "00000000-0000-4000-8000-0000000000c2").select("id");
   check("vlasnik mijenja cijenu svog artikla", price2.data?.length === 1);

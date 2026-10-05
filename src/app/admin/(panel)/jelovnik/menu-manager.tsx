@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Camera, Pencil, Plus } from "lucide-react";
 import type { AdminRestaurant } from "@/lib/admin/context";
 import { formatEuro } from "@/lib/admin/orders";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { fetchAdminMenu, parseEuroToCents, type AdminMenu, type AdminMenuItem } from "./menu-data";
+import { fetchAdminMenu, parseEuroToCents, uploadMenuPhoto, type AdminMenu, type AdminMenuItem } from "./menu-data";
 
 const field =
   "mt-1 min-h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-base outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20";
@@ -66,6 +66,29 @@ export default function MenuManager({ restaurant, initial }: { restaurant: Admin
       `„${values.name.trim()}” je spremljen.`
     );
   };
+
+  // Fotografija jela: smanji se u pregledniku, ide u mapu radnje u javnom bucketu, a link se zapiše uz artikl.
+  const uploadPhoto = async (item: AdminMenuItem, file: File) => {
+    if (file.size > 25_000_000) {
+      setError("Slika je prevelika (najviše 25 MB).");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setSaved(null);
+    try {
+      await uploadMenuPhoto(supabase, restaurant.id, item.id, file);
+      setSaved(`Slika za „${item.name}” je spremljena.`);
+      await reload();
+    } catch {
+      setError("Slika nije spremljena. Pokušaj ponovno (druga slika ili bolja veza).");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removePhoto = (item: AdminMenuItem) =>
+    run(() => supabase.from("menu_items").update({ image_url: null }).eq("id", item.id).select("id"), `Slika za „${item.name}” je uklonjena.`);
 
   const addItem = (values: { name: string; description: string; price: string; categoryId: string }) => {
     const cents = parseEuroToCents(values.price);
@@ -129,13 +152,22 @@ export default function MenuManager({ restaurant, initial }: { restaurant: Admin
                     title={`Uredi: ${item.name}`}
                     busy={busy}
                     initial={{ name: item.name, description: item.description, price: (item.priceCents / 100).toFixed(2).replace(".", ",") }}
+                    photo={{ url: item.imageUrl, busy, onPick: (file) => void uploadPhoto(item, file), onRemove: () => void removePhoto(item) }}
                     onCancel={() => setEditingId(null)}
                     onSubmit={(values) => saveEdit(item, values)}
                   />
                 ) : (
                   <article key={item.id} className={`rounded-2xl border border-[var(--border)] bg-white p-4 card-shadow ${item.available ? "" : "opacity-60"}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
+                    <div className="flex items-start gap-3">
+                      {item.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+                      ) : (
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-black/[0.05] text-[var(--muted)]">
+                          <Camera className="h-6 w-6" aria-hidden />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
                         <h3 className="text-lg font-extrabold leading-tight">{item.name}</h3>
                         {item.description && <p className="mt-0.5 text-base text-[var(--muted)]">{item.description}</p>}
                       </div>
@@ -175,6 +207,7 @@ function ItemForm({
   initial,
   categories,
   busy,
+  photo,
   onSubmit,
   onCancel,
 }: {
@@ -182,6 +215,7 @@ function ItemForm({
   initial: FormValues;
   categories?: { id: string; name: string }[];
   busy: boolean;
+  photo?: { url: string | null; busy: boolean; onPick: (file: File) => void; onRemove: () => void };
   onSubmit: (values: FormValues) => void | Promise<void>;
   onCancel: () => void;
 }) {
@@ -216,6 +250,34 @@ function ItemForm({
             ))}
           </select>
         </label>
+      )}
+      {photo && (
+        <div className="space-y-2">
+          <p className="text-base font-bold">Slika</p>
+          {photo.url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo.url} alt="" className="h-40 w-full rounded-xl object-cover" />
+          )}
+          <label className={`${btn} flex w-full cursor-pointer items-center justify-center gap-2 bg-black/[0.05] ${photo.busy ? "opacity-50" : ""}`}>
+            <Camera className="h-5 w-5" /> {photo.busy ? "Šaljem sliku…" : photo.url ? "Zamijeni sliku" : "Dodaj sliku"}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              disabled={photo.busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) photo.onPick(file);
+              }}
+            />
+          </label>
+          {photo.url && (
+            <button type="button" disabled={photo.busy} onClick={photo.onRemove} className={`${btn} w-full bg-red-50 text-red-700`}>
+              Ukloni sliku
+            </button>
+          )}
+        </div>
       )}
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onCancel} className={`${btn} bg-black/[0.05]`}>Odustani</button>
