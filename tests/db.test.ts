@@ -26,10 +26,10 @@ const createOrder = (items: unknown[], total = 250) =>
   ]);
 const line = { item_id: null, name: "Pomfrit", qty: 1, unit_price_cents: 250, line_total_cents: 250, options: [] };
 
-test("seed: tri demo radnje + test radnja koja nije demo", async () => {
+test("seed: dvije demo radnje + test radnja koja nije demo", async () => {
   await actAs(db, null);
   const shops = await rows<{ slug: string; is_demo: boolean }>(db, "select slug, is_demo from restaurants order by slug");
-  assert.deepEqual(shops.map((s) => `${s.slug}:${s.is_demo}`), ["emmito:true", "grill-box:true", "smash:true", "test-radnja:false"]);
+  assert.deepEqual(shops.map((s) => `${s.slug}:${s.is_demo}`), ["emmito:true", "smash:true", "test-radnja:false"]);
 });
 
 test("seed: Emmito jelovnik, cijene, umak obavezan osim za salatu i vege sendvič, satnica", async () => {

@@ -13,7 +13,7 @@ const base: NewOrderEmailInput = {
   pickupTime: null,
   note: "Bez luka",
   totalCents: 1250,
-  adminUrl: "https://grillbox-hr.vercel.app/admin",
+  adminUrl: "https://web-shop-kebab.vercel.app/admin",
   lines: [
     { itemId: "1", name: "Kebab veliki", qty: 2, unitPriceCents: 500, lineTotalCents: 1000, options: [{ group: "Umak", name: "Ljuti", priceDeltaCents: 0 }, { group: "Dodaci", name: "Sir", priceDeltaCents: 0 }] },
     { itemId: "2", name: "Sok", qty: 1, unitPriceCents: 250, lineTotalCents: 250, options: [] },
@@ -30,9 +30,9 @@ test("sadržaj: kupac, telefon, vrijeme, stavke s opcijama, napomena, ukupno i g
     assert.ok(html.includes(part), `html: ${part}`);
     assert.ok(text.includes(part), `text: ${part}`);
   }
-  assert.ok(html.includes('href="https://grillbox-hr.vercel.app/admin"'));
+  assert.ok(html.includes('href="https://web-shop-kebab.vercel.app/admin"'));
   assert.ok(html.includes("Otvori narudžbe"));
-  assert.ok(text.includes("https://grillbox-hr.vercel.app/admin"));
+  assert.ok(text.includes("https://web-shop-kebab.vercel.app/admin"));
   assert.ok(html.includes('name="viewport"'), "prilagođeno mobitelu");
 });
 

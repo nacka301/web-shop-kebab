@@ -12,8 +12,8 @@ function decode(png: Buffer): string | null {
 }
 
 test("QR se skenira i vodi na točan link s ?src=qr", async () => {
-  const url = buildShopUrl("https://grillbox-hr.vercel.app", "smash", "qr");
-  assert.equal(url, "https://grillbox-hr.vercel.app/smash?src=qr");
+  const url = buildShopUrl("https://web-shop-kebab.vercel.app", "smash", "qr");
+  assert.equal(url, "https://web-shop-kebab.vercel.app/smash?src=qr");
   for (const width of [300, 600, 2048]) {
     assert.equal(decode(await qrPngBuffer(url, width)), url, `širina ${width}`);
   }
@@ -27,7 +27,7 @@ test("svaki gotov link (ig, fb, gmaps, wa, qr) daje QR koji se čita", async () 
 });
 
 test("korekcija grešaka: čita se i s oštećenim sredinom koda (~10 % površine)", async () => {
-  const url = buildShopUrl("https://grillbox-hr.vercel.app", "emmito", "qr");
+  const url = buildShopUrl("https://web-shop-kebab.vercel.app", "emmito", "qr");
   const image = PNG.sync.read(await qrPngBuffer(url, 800));
   const size = Math.round(image.width * 0.1);
   const start = Math.round(image.width / 2 - size / 2);

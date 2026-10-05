@@ -1,4 +1,4 @@
-# Grill Box MVP
+# Naručivanje za male radnje (SMASH, Vinkovci)
 
 Mobile-first Next.js prototip za naručivanje hrane (customer-facing demo).
 
@@ -11,7 +11,7 @@ npm run dev
 
 Demo rute:
 
-- [/grill-box](http://localhost:3000/grill-box) — SMASH, Vinkovci (ista radnja je i na `/smash`)
+- [/smash](http://localhost:3000/smash) — SMASH, Vinkovci
 - [/emmito](http://localhost:3000/emmito) — Emmito, kebab i brza hrana, Daruvar
 
 Početna `/` preusmjerava na `NEXT_PUBLIC_DEFAULT_SLUG`.
@@ -41,7 +41,7 @@ To je sve — meni odmah pokazuje tvoju sliku. Ako slika nedostaje, prikazuje se
 Radnje, jelovnik i narudžbe žive u Supabaseu (sheme u [`supabase/migrations`](./supabase/migrations)).
 
 - **Stvarne radnje** (`is_demo = false`) spremaju narudžbe: klijent šalje samo id-eve i količine na `POST /api/orders`, a server cijene i opcije računa iz baze i upisuje narudžbu atomarno (`create_order`). Anonimni korisnik ne može čitati ni pisati narudžbe (RLS).
-- **Demo radnje** (`grill-box`, `smash`, `emmito`; [`supabase/seed.sql`](./supabase/seed.sql)) nose oznaku "Demo" i ne spremaju ništa — potvrda je lažna.
+- **Demo radnje** (`emmito`; [`supabase/seed.sql`](./supabase/seed.sql)) nose oznaku "Demo" i ne spremaju ništa — potvrda je lažna.
 - Praćenje narudžbe: `/[slug]/narudzba/[id]` (osvježava se svakih 5 s, bez telefona i imena kupca).
 - Radno vrijeme je `opening_hours` po danu (`mon`…`sun`, lista `[od, do]`); `do` manji ili jednak `od` znači rad preko ponoći (petak `09:00`–`02:00` = u subotu u 01:00 još otvoreno). Sve se računa u zoni Europe/Zagreb, neovisno o zoni servera.
 - Testna radnja koja nije demo: [`supabase/test-restaurant.sql`](./supabase/test-restaurant.sql).
@@ -80,7 +80,7 @@ npm run test:admin # admin protiv prave baze: prijava, izolacija radnji, Realtim
 
 Varijable okruženja: vidi [`.env.example`](./.env.example). `SUPABASE_SERVICE_ROLE_KEY` je samo za server — nikad s `NEXT_PUBLIC_` i nikad u repozitorij.
 
-Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/grill-box`.
+Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUBLIC_SHOP_URL` na javni URL radnje. QR kod tada vodi kupca direktno na `/smash`.
 
 ## Vercel
 
@@ -90,7 +90,7 @@ Za QR kod u produkciji kopiraj `.env.example` u `.env.local` i postavi `NEXT_PUB
 4. U **Environment Variables** dodaj:
 
 ```env
-NEXT_PUBLIC_SHOP_URL=https://tvoj-projekt.vercel.app/grill-box
+NEXT_PUBLIC_SHOP_URL=https://tvoj-projekt.vercel.app/smash
 ```
 
 5. Klikni **Deploy**.
