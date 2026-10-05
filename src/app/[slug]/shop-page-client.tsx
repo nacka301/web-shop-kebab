@@ -426,6 +426,7 @@ export default function ShopPageClient({ shop, menu }: { shop: ShopDTO; menu: Me
 
     <footer className="mx-auto max-w-[1240px] px-5 pb-10 pt-2 text-center text-xs text-[var(--muted)] sm:px-8 lg:px-10">
       Naručivanje pokreće <span className="font-semibold text-[var(--foreground)]">VPSolutions</span>
+      <a href="/admin/login" className="mt-2 flex min-h-12 items-center justify-center font-semibold underline underline-offset-4">Prijava za vlasnike</a>
     </footer>
 
     {totalItems > 0 && !showCart && !selectedItem && <button onClick={() => { setShowCart(true); pushView("cart"); }} className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-2.5rem)] max-w-[26rem] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--brand)] px-5 py-4 font-bold text-white shadow-xl shadow-[var(--brand)]/30 safe-bottom active:scale-[0.98] md:hidden">
