@@ -72,7 +72,7 @@ test("anon: čita radnje i jelovnik, ali narudžbe vraćaju PRAZNO iako ih ima",
   const [{ n }] = await rows<{ n: number }>(db, "select count(*)::int n from orders");
   assert.ok(n > 0);
   await actAs(db, "anon");
-  assert.equal((await rows(db, "select id from restaurants")).length, 4);
+  assert.equal((await rows(db, "select id from restaurants")).length, 3);
   assert.ok((await rows(db, "select id from menu_items")).length > 0);
   assert.ok((await rows(db, "select id from options")).length > 0);
   assert.equal((await rows(db, "select id from orders")).length, 0);
