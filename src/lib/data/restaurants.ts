@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { formatHoursLines, parseOpeningHours } from "@/lib/hours";
+import { effectiveHours, formatHoursLines, parseOpeningHours } from "@/lib/hours";
 import type { PricingItem } from "@/lib/orders/pricing";
 import type { RestaurantForOrder } from "@/lib/orders/prepare";
 import type { MenuItemDTO, ShopDTO } from "@/lib/types";
@@ -24,10 +24,11 @@ type RestaurantRow = {
   avg_prep_minutes: number;
   prep_time_label: string | null;
   is_demo: boolean;
+  ignore_hours: boolean;
 };
 
 const RESTAURANT_COLUMNS =
-  "id, slug, name, description, address, logo_url, logo_text, hero_image_url, accent_color, phone, opening_hours, accepting_orders, avg_prep_minutes, prep_time_label, is_demo";
+  "id, slug, name, description, address, logo_url, logo_text, hero_image_url, accent_color, phone, opening_hours, accepting_orders, avg_prep_minutes, prep_time_label, is_demo, ignore_hours";
 
 function mapShop(row: RestaurantRow): ShopDTO {
   const tjedno = parseOpeningHours(row.opening_hours);
@@ -41,8 +42,9 @@ function mapShop(row: RestaurantRow): ShopDTO {
     logoUrl: row.logo_url,
     accentColor: row.accent_color,
     telefon: row.phone,
+    // Natpis ostaje pravo radno vrijeme; u testnom načinu je samo izračun otvorenosti 24/7.
     radnoVrijemeRedovi: formatHoursLines(tjedno),
-    tjedno,
+    tjedno: effectiveHours(tjedno, row.ignore_hours),
     vrijemePripreme: row.prep_time_label ?? `${row.avg_prep_minutes} min`,
     heroSlika: row.hero_image_url,
     minIznosDostave: DEMO_MIN_DELIVERY_EUR,
@@ -148,17 +150,17 @@ export async function loadPricingItems(client: SupabaseClient, restaurantId: str
 export async function loadRestaurantForOrder(client: SupabaseClient, slug: string): Promise<RestaurantForOrder | null> {
   const { data, error } = await client
     .from("restaurants")
-    .select("id, slug, name, is_demo, accepting_orders, opening_hours")
+    .select("id, slug, name, is_demo, accepting_orders, opening_hours, ignore_hours")
     .eq("slug", slug)
     .maybeSingle();
   if (error || !data) return null;
-  const row = data as unknown as Pick<RestaurantRow, "id" | "slug" | "name" | "is_demo" | "accepting_orders" | "opening_hours">;
+  const row = data as unknown as Pick<RestaurantRow, "id" | "slug" | "name" | "is_demo" | "accepting_orders" | "opening_hours" | "ignore_hours">;
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     isDemo: row.is_demo,
     acceptingOrders: row.accepting_orders,
-    tjedno: parseOpeningHours(row.opening_hours),
+    tjedno: effectiveHours(parseOpeningHours(row.opening_hours), row.ignore_hours),
   };
 }

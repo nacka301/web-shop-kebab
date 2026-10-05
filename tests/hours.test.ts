@@ -59,3 +59,14 @@ test("termini nikad dalje od 24 h", () => {
 test("redovi radnog vremena za prikaz", () => {
   assert.deepEqual(formatHoursLines(emmitoHours), ["Pon–Čet 09:00 – 23:00", "Pet–Sub 09:00 – 02:00", "Ned 16:00 – 22:00"]);
 });
+
+test("testni način: effectiveHours daje 24/7 čak i za zatvorenu radnju, a normalno ostavlja satnicu", async () => {
+  const { effectiveHours, isWithinWorkingHours } = await import("../src/lib/hours");
+  const closed = { tjedno: Array.from({ length: 7 }, () => []) };
+  const nightMonday = new Date("2026-10-05T01:30:00Z"); // 03:30 po Zagrebu
+  assert.equal(isWithinWorkingHours(closed, nightMonday), false);
+  assert.equal(isWithinWorkingHours({ tjedno: effectiveHours(closed.tjedno, false) }, nightMonday), false);
+  for (const when of ["2026-10-05T01:30:00Z", "2026-10-07T12:00:00Z", "2026-10-11T22:59:00Z"]) {
+    assert.equal(isWithinWorkingHours({ tjedno: effectiveHours(closed.tjedno, true) }, new Date(when)), true, when);
+  }
+});

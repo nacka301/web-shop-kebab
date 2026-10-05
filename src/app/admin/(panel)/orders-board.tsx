@@ -210,6 +210,11 @@ export default function OrdersBoard({ restaurant, initialOrders }: { restaurant:
         </button>
       )}
 
+      {restaurant.ignoreHours && (
+        <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 text-base font-bold text-amber-800">
+          Testni način: radno vrijeme se ne provjerava. Isključi ga u Postavkama.
+        </p>
+      )}
       <label className="mt-2 flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-2 card-shadow">
         <span className="min-w-0">
           <span className="block text-base font-bold">Ne primamo narudžbe</span>

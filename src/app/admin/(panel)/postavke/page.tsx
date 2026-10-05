@@ -14,5 +14,5 @@ export default async function AdminSettingsPage() {
   const supabase = await createSessionClient();
   const { data } = await supabase.rpc("get_owner_email", { p_restaurant_id: context.restaurant.id });
 
-  return <SettingsForm restaurantId={context.restaurant.id} initialEmail={typeof data === "string" ? data : ""} mailConfigured={isMailConfigured()} />;
+  return <SettingsForm restaurantId={context.restaurant.id} initialIgnoreHours={context.restaurant.ignoreHours} initialEmail={typeof data === "string" ? data : ""} mailConfigured={isMailConfigured()} />;
 }

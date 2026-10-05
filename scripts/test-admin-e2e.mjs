@@ -165,6 +165,26 @@ try {
   const anonTest = await fetch(`${BASE}/api/admin/push/test`, { method: "POST", redirect: "manual" });
   check("probna obavijest bez prijave nije dopuštena", anonTest.status !== 200, String(anonTest.status));
 
+  // --- testni način: ignoriranje radnog vremena ---
+  const CAT_B = "00000000-0000-4000-8000-0000000000b8", ITEM_B = "00000000-0000-4000-8000-0000000000c8";
+  await service.from("restaurants").update({ opening_hours: { mon: null, tue: null, wed: null, thu: null, fri: null, sat: null, sun: null } }).eq("id", B);
+  await service.from("categories").upsert({ id: CAT_B, restaurant_id: B, name: "Jela", sort: 0 });
+  await service.from("menu_items").upsert({ id: ITEM_B, restaurant_id: B, category_id: CAT_B, name: "Burger B", price_cents: 500, sort: 0 });
+  const guestOrderB = () => fetch(`${BASE}/api/orders`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: "e2e-radnja-b", items: [{ item_id: ITEM_B, qty: 1, option_ids: [] }], name: "E2E Admin B", phone: "091 234 5678", pickup_type: "asap" }) });
+  const closedTry = await guestOrderB();
+  check("zatvorena radnja odbija narudžbu (409)", closedTry.status === 409, String(closedTry.status));
+  const otherToggle = await ownerA.from("restaurants").update({ ignore_hours: true }).eq("id", B).select("id");
+  check("vlasnik A NE može uključiti testni način tuđoj radnji", otherToggle.data?.length === 0);
+  const toggleOn = await ownerB.from("restaurants").update({ ignore_hours: true }).eq("id", B).select("id");
+  check("vlasnik B uključuje testni način svoje radnje", toggleOn.data?.length === 1, toggleOn.error?.message);
+  const openTry = await guestOrderB();
+  check("u testnom načinu zatvorena radnja prima narudžbu (201)", openTry.status === 201, String(openTry.status));
+  const publicFlag = await newAnon().from("restaurants").select("ignore_hours").eq("slug", "e2e-radnja-b").single();
+  check("gosti smiju čitati zastavicu (da stranica pokaže otvoreno)", publicFlag.data?.ignore_hours === true, publicFlag.error?.message);
+  await ownerB.from("restaurants").update({ ignore_hours: false }).eq("id", B);
+  const closedAgain = await guestOrderB();
+  check("kad se isključi, opet vrijedi radno vrijeme (409)", closedAgain.status === 409, String(closedAgain.status));
+
   // --- jelovnik ---
   const price2 = await ownerA.from("menu_items").update({ price_cents: 650 }).eq("id", "00000000-0000-4000-8000-0000000000c2").select("id");
   check("vlasnik mijenja cijenu svog artikla", price2.data?.length === 1);

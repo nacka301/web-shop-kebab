@@ -7,10 +7,23 @@ import { isValidEmail } from "@/lib/validation";
 const field =
   "mt-1 min-h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-base outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20";
 
-export default function SettingsForm({ restaurantId, initialEmail, mailConfigured }: { restaurantId: string; initialEmail: string; mailConfigured: boolean }) {
+export default function SettingsForm({ restaurantId, initialEmail, initialIgnoreHours, mailConfigured }: { restaurantId: string; initialEmail: string; initialIgnoreHours: boolean; mailConfigured: boolean }) {
   const [email, setEmail] = useState(initialEmail);
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ignoreHours, setIgnoreHours] = useState(initialIgnoreHours);
+  const [testMessage, setTestMessage] = useState<string | null>(null);
+
+  const toggleIgnoreHours = async () => {
+    const next = !ignoreHours;
+    setTestMessage(null);
+    const { data, error } = await createBrowserSupabaseClient().from("restaurants").update({ ignore_hours: next }).eq("id", restaurantId).select("id");
+    if (error || !data?.length) setTestMessage("Promjena nije spremljena. Pokušaj ponovno.");
+    else {
+      setIgnoreHours(next);
+      setTestMessage(next ? "Testni način je uključen: gosti mogu naručivati u bilo koje doba." : "Testni način je isključen: opet vrijedi radno vrijeme.");
+    }
+  };
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -57,6 +70,23 @@ export default function SettingsForm({ restaurantId, initialEmail, mailConfigure
           {busy ? "Spremanje…" : "Spremi"}
         </button>
       </form>
+      <section className="mt-4 rounded-2xl border border-[var(--border)] bg-white p-4 card-shadow">
+        <label className="flex min-h-14 cursor-pointer items-center justify-between gap-3">
+          <span className="min-w-0">
+            <span className="block text-base font-bold">Testni način: ignoriraj radno vrijeme</span>
+            <span className="block text-base text-[var(--muted)]">Radnja se ponaša kao da je uvijek otvorena, pa možeš isprobavati narudžbe i izvan radnog vremena.</span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={ignoreHours}
+            onChange={() => void toggleIgnoreHours()}
+            className="relative h-8 w-14 shrink-0 cursor-pointer appearance-none rounded-full bg-black/20 transition-colors before:absolute before:left-1 before:top-1 before:h-6 before:w-6 before:rounded-full before:bg-white before:transition-transform checked:bg-amber-500 checked:before:translate-x-6"
+          />
+        </label>
+        {ignoreHours && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-base font-bold text-amber-800">Uključeno je. Isključi prije nego što radnja počne raditi s pravim gostima.</p>}
+        {testMessage && <p role="status" className="mt-2 rounded-xl bg-black/[0.04] px-3 py-2 text-base font-semibold">{testMessage}</p>}
+      </section>
     </main>
   );
 }

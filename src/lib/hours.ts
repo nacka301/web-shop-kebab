@@ -15,6 +15,14 @@ const SLOT_STEP_MIN = 15;
 const LEAD_MIN = 15;
 export const MAX_AHEAD_HOURS = 24;
 
+// "do" jednak "od" znači cijeli dan (kao u test radnji), pa je ovo otvoreno 24/7.
+const ALWAYS_OPEN: WeekHours = Array.from({ length: 7 }, () => [{ otvara: "00:00", zatvara: "00:00" }]);
+
+// Testni način: radno vrijeme se ignorira pa je radnja otvorena 24/7 (isti oblik kao prava satnica).
+export function effectiveHours(tjedno: WeekHours, ignoreHours: boolean): WeekHours {
+  return ignoreHours ? ALWAYS_OPEN : tjedno;
+}
+
 const partsFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: SHOP_TIME_ZONE,
   hourCycle: "h23",
